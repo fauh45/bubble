@@ -1,0 +1,11 @@
+{
+  "name": "@bubble/frontend",
+  "version": "1.0.0",
+  "description": "Bubble Social Frontend",
+  "main": "index.js",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^4.3.3"
+  }
+}

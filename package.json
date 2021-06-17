@@ -1,0 +1,13 @@
+{
+  "name": "bubble",
+  "version": "1.0.0",
+  "description": "Bubble Social",
+  "repository": "git@github.com:fauh45/bubble.git",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "common"
+  ]
+}
