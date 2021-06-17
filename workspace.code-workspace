@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"name": "✨ bubble",
+			"path": "."
+		},
+		{
+			"name": "🚀 @bubble/backend",
+			"path": "backend"
+		},
+		{
+			"name": "📦 @bubble/common",
+			"path": "common"
+		},
+		{
+			"name": "🚀 @bubble/frontend",
+			"path": "frontend"
+		}
+	],
+	"settings": {}
+}
