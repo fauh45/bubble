@@ -15,7 +15,7 @@ const Home = (props: HomeProps): JSX.Element => {
   return (
     <Box direction="column" align="center">
       <Text color="neutral-1" size="3xl">
-        Hello World! To {name} {age ? "Aged " + age : null}
+        Hello! World! To {name} {age ? "Aged " + age : null}
       </Text>
       <Button
         type="button"
