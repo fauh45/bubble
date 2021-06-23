@@ -4,8 +4,8 @@ import {
   TestV1Response,
   TestV1Error,
   TestV1AgeStatus,
+  AuthorizationHeader,
 } from "@bubble/common";
-import logger from "../../helpers/logger";
 
 const TestV1Route: FastifyPluginAsync = async (app, opts) => {
   app.post<{ Body: TestV1Body; Response: TestV1Response }>(
@@ -21,8 +21,8 @@ const TestV1Route: FastifyPluginAsync = async (app, opts) => {
       },
     },
     async (req, res) => {
-      logger.info("Requester name : " + req.body.name);
-      logger.info("Requester age : " + req.body.age);
+      app.log.info("Requester name : " + req.body.name);
+      app.log.info("Requester age : " + req.body.age);
 
       if (req.body.age && req.body.age >= 18) {
         return res.status(200).send({
@@ -36,6 +36,20 @@ const TestV1Route: FastifyPluginAsync = async (app, opts) => {
     }
   );
 
+  app.get(
+    "/",
+    {
+      schema: {
+        description: "Test your auth status",
+        headers: AuthorizationHeader,
+      },
+    },
+    async (req, res) => {
+      app.log.info("User status");
+      app.log.info(req.user_status);
+      return res.status(200).send(req.user_status);
+    }
+  );
   return;
 };
 
