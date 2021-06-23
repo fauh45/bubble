@@ -54,7 +54,7 @@ export const checkInterest = async (
 ): Promise<boolean> => {
   return (
     (await db
-      .collection<InterestModel>("user_account")
+      .collection<InterestModel>("interest_page")
       .findOne(
         { _id: new ObjectId(interest_id) },
         { projection: { _id: 1 } }
