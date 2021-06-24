@@ -41,6 +41,24 @@ export type UserV1PostResponse = UserAccountSerialized;
 export const UserV1PostError = CommonError;
 export type UserV1PostError = CommonError;
 
+/* PATCH "user/v1/:user_id" */
+export const UserV1PatchHeaders = AuthorizationHeader;
+export type UserV1PatchHeaders = AuthorizationHeader;
+
+export const UserV1PatchParams = UserV1GetParams;
+export type UserV1PatchParams = UserV1GetParams;
+
+export const UserV1PatchBody = Type.Partial(
+  Type.Omit(UserAccountSerialized, ["_id", "likes", "email", "onboarding"])
+);
+export type UserV1PatchBody = Static<typeof UserV1PatchBody>;
+
+export const UserV1PatchResponse = UserAccountSerialized;
+export type UserV1PatchResponse = UserAccountSerialized;
+
+export const UserV1PatchError = CommonError;
+export type UserV1PatchError = CommonError;
+
 /* GET "user/v1/check-username/:username" */
 export const UsernameCheckV1GetHeaders = Type.Partial(AuthorizationHeader);
 export type UsernameCheckV1GetHeaders = Static<

@@ -10,13 +10,17 @@ import {
   UserV1GetHeaders,
   UserV1GetParams,
   UserV1GetResponse,
+  UserV1PatchBody,
+  UserV1PatchError,
+  UserV1PatchHeaders,
+  UserV1PatchParams,
+  UserV1PatchResponse,
   UserV1PostBody,
   UserV1PostError,
   UserV1PostHeaders,
   UserV1PostResponse,
 } from "@bubble/common";
 import {
-  checkInterest,
   checkInterestMany,
   checkUsername,
   createUser,
@@ -43,6 +47,7 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
     {
       schema: {
         description: "Get user id information",
+        tags: ["User"],
         headers: UserV1GetHeaders,
         params: UserV1GetParams,
         response: {
@@ -82,6 +87,7 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
     {
       schema: {
         description: "Creates new user for user that has done social login",
+        tags: ["User"],
         headers: UserV1PostHeaders,
         body: UserV1PostBody,
         response: {
@@ -141,6 +147,57 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
     }
   );
 
+  app.patch<{
+    Headers: UserV1PatchHeaders;
+    Params: UserV1PatchParams;
+    Body: UserV1PatchBody;
+    Response: UserV1PatchResponse;
+  }>(
+    "/:user_id",
+    {
+      schema: {
+        description:
+          "Patch user data by user_id. 'is_moderator' are only able to be changed by other moderators, while the rest of the data can only be replaced by their own user. Trying to change data not own by user WILL NOT have error emitted.",
+        tags: ["User"],
+        headers: UserV1PatchHeaders,
+        params: UserV1PatchParams,
+        body: UserV1PatchBody,
+        response: {
+          200: UserV1PatchResponse,
+          "4xx": UserV1PatchError,
+          "5xx": UserV1PatchError,
+        },
+      },
+    },
+    async (req, res) => {
+      const { user_status, body, params } = req;
+
+      if (!user_status.token_valid || !user_status.exist) {
+        return res.code(401).send(Error401Default);
+      }
+
+      const { is_moderator, ...user_self_update } = body;
+
+      const db = app.mongo.client.db();
+      let user_update: Partial<UserAccountModel> = {};
+
+      if (user_status.exist && user_status.token_valid) {
+        user_update = { ...user_self_update };
+      }
+
+      if (user_status.exist && user_status.moderator) {
+        user_update.is_moderator = is_moderator;
+      }
+
+      await db
+        .collection<UserAccountModel>("user_account")
+        .updateOne({ _id: new ObjectId(params.user_id) }, user_update);
+
+      const updated_user = { ...req.user_account, ...user_update };
+      return res.code(200).send(updated_user);
+    }
+  );
+
   app.get<{
     Headers: UsernameCheckV1GetHeaders;
     Params: UsernameCheckV1GetParams;
@@ -150,6 +207,7 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
     {
       schema: {
         description: "Check if username already in use",
+        tags: ["User"],
         headers: UsernameCheckV1GetHeaders,
         params: UsernameCheckV1GetParams,
         response: {
