@@ -25,12 +25,13 @@ import {
   checkInterestMany,
   checkUsername,
   createUser,
+  createUserTimeline,
   getUserById,
   UserAccountModel,
 } from "../../helpers/db_query";
 import { relateUserToInterestMany, User } from "../../helpers/graph/User";
 
-const serialized_user = (user: UserAccountModel): UserV1GetResponse => {
+const serializeUser = (user: UserAccountModel): UserV1GetResponse => {
   return {
     ...user,
     _id: user._id.toHexString(),
@@ -63,7 +64,7 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
       const db = app.mongo.client.db();
 
       try {
-        const user = serialized_user(await getUserById(db, req.params.user_id));
+        const user = serializeUser(await getUserById(db, req.params.user_id));
 
         if (user._id !== req.user_account?._id.toHexString()) {
           delete user.email;
@@ -140,11 +141,12 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
 
       await Promise.all([
         createUser(db, new_user),
+        createUserTimeline(db, req.user?.uid!),
         User.createOne({ id: req.user?.uid!, username: req.body.username }),
       ]);
 
       relateUserToInterestMany(req.user?.uid!, req.body.likes);
-      return res.code(200).send(serialized_user(new_user));
+      return res.code(200).send(serializeUser(new_user));
     }
   );
 

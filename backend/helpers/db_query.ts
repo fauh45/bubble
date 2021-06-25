@@ -1,5 +1,11 @@
 import { Db, ObjectId } from "mongodb";
-import { InterestCollection, UserAccountCollection } from "../../common/build";
+import {
+  InterestCollection,
+  TimelineItem,
+  UserAccountCollection,
+  UserTimelineCollection,
+  UserTimelineModel,
+} from "../../common/build";
 
 export interface UserAccountModel {
   _id: ObjectId;
@@ -72,4 +78,48 @@ export const checkInterestMany = async (
   );
 
   return result.every((val) => val === true);
+};
+
+export const getTimelineById = async (
+  db: Db,
+  user_id: string
+): Promise<UserTimelineModel> => {
+  const timeline = await db
+    .collection<UserTimelineModel>(UserTimelineCollection)
+    .findOne({ _id: new ObjectId(user_id) });
+
+  if (timeline === null) throw new Error("User timeline not found");
+
+  return timeline;
+};
+
+export const createUserTimeline = async (db: Db, user_id: string) => {
+  const timeline: UserTimelineModel = {
+    _id: new ObjectId(user_id),
+    timeline: [],
+    recommended: [],
+  };
+
+  await db
+    .collection<UserTimelineModel>(UserTimelineCollection)
+    .insertOne(timeline);
+};
+
+export const addTimelineItem = async (
+  db: Db,
+  user_id: string,
+  item: TimelineItem,
+  type: "timeline" | "recommended"
+) => {
+  await db.collection<UserTimelineModel>(UserTimelineCollection).updateOne(
+    {
+      _id: new ObjectId(user_id),
+      [type + ".post_id"]: { $ne: item.post_id },
+    },
+    {
+      $push: {
+        [type]: item,
+      },
+    }
+  );
 };

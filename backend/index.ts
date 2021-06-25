@@ -17,6 +17,7 @@ import { getUserById } from "./helpers/db_query";
 import TestV1Route from "./test/v1/test";
 import UserV1Route from "./user/v1/user";
 import fastifyMongodb from "fastify-mongodb";
+import TimelineV1Route from "./timeline/v1";
 
 const app = fastify({
   logger: logger,
@@ -86,8 +87,13 @@ app.register(fastifyMongodb, {
   url: process.env.MONGODB_URI!,
 });
 
+/**
+ * v1 Routes
+ */
 app.register(UserV1Route, { prefix: "/user/v1" });
 app.register(TestV1Route, { prefix: "/test/v1" });
+app.register(TimelineV1Route, { prefix: "/timeline/v1" });
+
 app.listen(3000).catch((err) => {
   logger.error(err, "Error");
 });
