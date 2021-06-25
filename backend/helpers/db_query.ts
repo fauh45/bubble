@@ -1,4 +1,5 @@
 import { Db, ObjectId } from "mongodb";
+import { InterestCollection, UserAccountCollection } from "../../common/build";
 
 export interface UserAccountModel {
   _id: ObjectId;
@@ -24,7 +25,7 @@ export const getUserById = async (
   user_id: string
 ): Promise<UserAccountModel> => {
   const user = await db
-    .collection<UserAccountModel>("user_account")
+    .collection<UserAccountModel>(UserAccountCollection)
     .findOne({ _id: new ObjectId(user_id) });
 
   if (user === null) throw new Error("User not found");
@@ -33,7 +34,7 @@ export const getUserById = async (
 };
 
 export const createUser = async (db: Db, user: UserAccountModel) => {
-  await db.collection<UserAccountModel>("user_account").insertOne(user);
+  await db.collection<UserAccountModel>(UserAccountCollection).insertOne(user);
 };
 
 export const checkUsername = async (
@@ -42,7 +43,7 @@ export const checkUsername = async (
 ): Promise<boolean> => {
   return (
     (await db
-      .collection<UserAccountModel>("user_account")
+      .collection<UserAccountModel>(UserAccountCollection)
       .findOne({ username: username }, { projection: { username: 1 } })) !==
     null
   );
@@ -54,7 +55,7 @@ export const checkInterest = async (
 ): Promise<boolean> => {
   return (
     (await db
-      .collection<InterestModel>("interest_page")
+      .collection<InterestModel>(InterestCollection)
       .findOne(
         { _id: new ObjectId(interest_id) },
         { projection: { _id: 1 } }

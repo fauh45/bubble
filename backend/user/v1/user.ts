@@ -2,6 +2,7 @@ import { FastifyPluginAsync } from "fastify";
 import { ObjectId } from "mongodb";
 import {
   Error401Default,
+  UserAccountCollection,
   UsernameCheckV1GetError,
   UsernameCheckV1GetHeaders,
   UsernameCheckV1GetParams,
@@ -189,9 +190,10 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
         user_update.is_moderator = is_moderator;
       }
 
-      await db
-        .collection<UserAccountModel>("user_account")
-        .updateOne({ _id: new ObjectId(params.user_id) }, user_update);
+      if (user_update !== {})
+        await db
+          .collection<UserAccountModel>(UserAccountCollection)
+          .updateOne({ _id: new ObjectId(params.user_id) }, user_update);
 
       const updated_user = { ...req.user_account, ...user_update };
       return res.code(200).send(updated_user);
