@@ -4,19 +4,18 @@ import InterestItem from '../components/InterestItem';
 
 interface Props{}
 
+let interestitems = ['Programming', 'Music', 'Art', 'Cooking', 'Sports', 'Science'];
+
 class InterestList extends React.Component<Props>{
     render(){
         return(
             <Box
                 align='start'
                 fill='horizontal'
-                gap='16px'
-                direction='row'
+                gap='48px'
+                direction='row-responsive'
             >
-                <InterestItem name="Wee"/>
-                <InterestItem name="Foo"/>
-                <InterestItem name="Gaa"/>
-                <InterestItem name="Dee"/>
+                {interestitems.map((item)=>{return <InterestItem name={item}/>})}
             </Box>
             );
     }

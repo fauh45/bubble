@@ -1,6 +1,6 @@
 import React from 'react';
-import { Box, Heading } from 'grommet';
-import { RouteComponentProps } from '@reach/router';
+import { Box, Button, Heading } from 'grommet';
+import { navigate, RouteComponentProps } from '@reach/router';
 import Page from '../components/Page';
 import InterestList from '../components/InterestList';
 
@@ -13,17 +13,43 @@ class OnBoarding extends React.PureComponent<Props>{
                 <Box
                     fill='horizontal'
                     overflow='auto'
-                    background={{color:{light:'#fff', dark:'#333'}}}>
+                    // background={{color:{light:'#fff', dark:'#333'}}}
+                    >
                     <Box
                         margin={{vertical:'24px', horizontal:'40px'}}
+                        gap='40px'
                     >
                         <Heading
                             margin='0'
                             level='1'
-                        >Choose 3 or more interests.
+                        >Choose 3 to 5 interests.
                         </Heading>
-                        <Box>
+                        <Box
+                            overflow='auto'
+                            flex='shrink'
+                            responsive
+                        >
                             <InterestList/>
+                        </Box>
+                        <Box
+                            direction='row'
+                            gap='32px'
+                        >
+                            <Box
+                            >
+                                <Button
+                                label='Back'
+                                secondary
+                                onClick={()=>{navigate(-1)}}
+                                />
+                            </Box>
+                            <Box>
+                                <Button
+                                label='Ok'
+                                primary
+                                onClick={()=>{navigate("/")}}
+                                />
+                            </Box>
                         </Box>
                     </Box>
                 </Box>
