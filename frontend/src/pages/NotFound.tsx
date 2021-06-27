@@ -1,6 +1,6 @@
 import React from 'react';
 import { Box, Button, Heading } from 'grommet';
-import { RouteComponentProps } from '@reach/router';
+import { navigate, RouteComponentProps } from '@reach/router';
 
 interface Props extends RouteComponentProps {}
 
@@ -18,7 +18,9 @@ class NotFound extends React.Component<Props>{
                     Sorry, your page is missing..
                 </Heading>
                 <Box>
-                    <Button label='Back'/>
+                    <Button label='Back'
+                    onClick={()=>{navigate(-1)}}
+                    />
                 </Box>
             </Box>
         );
