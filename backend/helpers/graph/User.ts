@@ -1,6 +1,14 @@
-import { ModelFactory, ModelRelatedNodesI, NeogmaInstance } from "neogma";
+import {
+  ModelFactory,
+  ModelRelatedNodesI,
+  NeogmaInstance,
+  QueryBuilder,
+  QueryRunner,
+} from "neogma";
+import logger from "../logger";
 import { neogma } from "./index";
 import { Interest, InterestInstance } from "./Interest";
+import { Post, PostInstance } from "./Post";
 
 export type UserProperties = {
   id: string;
@@ -9,6 +17,7 @@ export type UserProperties = {
 
 export interface UserRelatedNodes {
   LikesInterest: ModelRelatedNodesI<typeof Interest, InterestInstance>;
+  InteractWithPost: ModelRelatedNodesI<typeof Post, PostInstance>;
 }
 
 export type UserInstance = NeogmaInstance<UserProperties, UserRelatedNodes>;
@@ -38,6 +47,15 @@ export const User = ModelFactory<UserProperties, UserRelatedNodes>(
   neogma
 );
 
+// Defined after the model is defined, because of circular reference
+User.addRelationships({
+  InteractWithPost: {
+    model: Post,
+    direction: "out",
+    name: "INTERACT_WITH",
+  },
+});
+
 export const relateUserToInterest = async (
   user_id: string,
   interest_id: string
@@ -66,4 +84,33 @@ export const relateUserToInterestMany = async (
   });
 
   await Promise.all(worker);
+};
+
+export const relateUserToPost = async (user_id: string, post_id: string) => {
+  await User.relateTo({
+    alias: "InteractWithPost",
+    where: {
+      source: {
+        id: user_id,
+      },
+      target: {
+        id: post_id,
+      },
+    },
+  });
+};
+
+export const unrelateUserToPost = async (user_id: string, post_id: string) => {
+  const queryRunner = new QueryRunner({
+    driver: neogma.driver,
+    logger: logger,
+  });
+
+  await queryRunner.run(
+    `MATCH (s:User {id:$user_id})-[r:INTERACT_WITH]->(t:Post {id:$post_id}) DELETE r`,
+    {
+      post_id: post_id,
+      user_id: user_id,
+    }
+  );
 };

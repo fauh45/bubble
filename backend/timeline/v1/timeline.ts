@@ -24,9 +24,6 @@ const serializeTimeline = (
   return {
     _id: timeline._id.toHexString(),
     timeline: timeline.timeline.map((item) => serializeTimelineItem(item)),
-    recommended: timeline.recommended.map((item) =>
-      serializeTimelineItem(item)
-    ),
   };
 };
 

@@ -21,9 +21,8 @@ const makeCollection = async () => {
   await db
     .collection(UserTimelineCollection)
     .createIndex({ "timeline.post_id": 1 });
-  await db
-    .collection(UserTimelineCollection)
-    .createIndex({ "recommended.post_id": 1 });
+  await db.collection(PostCollection).createIndex({ "like.by": 1 });
+  await db.collection(PostCollection).createIndex({ "seen.by": 1 });
   await db.collection(InterestCollection).createIndex({ name: "text" });
   await db
     .collection(UserAccountCollection)

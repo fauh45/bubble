@@ -4,6 +4,7 @@ import fastify from "fastify";
 import fastifyCors from "fastify-cors";
 import fastifySwagger from "fastify-swagger";
 import firebaseAdmin from "firebase-admin";
+import fastifyMongodb from "fastify-mongodb";
 
 firebaseAdmin.initializeApp({
   credential: firebaseAdmin.credential.cert("./serviceAccount.json"),
@@ -16,8 +17,7 @@ import { getUserById } from "./helpers/db_query";
 
 import TestV1Route from "./test/v1/test";
 import UserV1Route from "./user/v1/user";
-import fastifyMongodb from "fastify-mongodb";
-import TimelineV1Route from "./timeline/v1";
+import TimelineV1Route from "./timeline/v1/timeline";
 
 const app = fastify({
   logger: logger,

@@ -26,38 +26,42 @@ export const UserAccountSerialized = Type.Object({
 export type UserAccountSerialized = Static<typeof UserAccountSerialized>;
 
 export const UserTimelineCollection = "user_timeline";
+export enum TimelineItemType {
+  recommended = "recommended",
+  followed = "followed",
+}
 export interface TimelineItem {
   seen: boolean;
   liked: boolean;
+  type: TimelineItemType;
   post_id: ObjectId;
 }
 export interface UserTimelineModel {
   _id: ObjectId;
   timeline: TimelineItem[];
-  recommended: TimelineItem[];
 }
 
 export const TimelineItemSerialized = Type.Object({
   seen: Type.Boolean(),
   liked: Type.Boolean(),
+  type: Type.Enum(TimelineItemType),
   post_id: Type.String(),
 });
 export type TimelineItemSerialized = Static<typeof TimelineItemSerialized>;
 export const UserTimelineSerialized = Type.Object({
   _id: Type.String(),
   timeline: Type.Array(TimelineItemSerialized),
-  recommended: Type.Array(TimelineItemSerialized),
 });
 export type UserTimelineSerialized = Static<typeof UserTimelineSerialized>;
 
 export const PostCollection = "post";
 export interface InteractionItem {
   by: ObjectId;
-  time: string;
+  time: Date;
 }
 export interface PostModel {
   _id: ObjectId;
-  time_posted: string;
+  time_posted: Date;
   deleted: boolean;
   author: ObjectId;
   part_of: ObjectId;

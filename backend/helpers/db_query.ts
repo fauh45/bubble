@@ -1,10 +1,12 @@
 import { Db, ObjectId } from "mongodb";
 import {
   InterestCollection,
-  TimelineItem,
   UserAccountCollection,
   UserTimelineCollection,
   UserTimelineModel,
+  PostCollection,
+  PostModel,
+  TimelineItemType,
 } from "../../common/build";
 
 export interface UserAccountModel {
@@ -97,7 +99,6 @@ export const createUserTimeline = async (db: Db, user_id: string) => {
   const timeline: UserTimelineModel = {
     _id: new ObjectId(user_id),
     timeline: [],
-    recommended: [],
   };
 
   await db
@@ -108,18 +109,125 @@ export const createUserTimeline = async (db: Db, user_id: string) => {
 export const addTimelineItem = async (
   db: Db,
   user_id: string,
-  item: TimelineItem,
-  type: "timeline" | "recommended"
+  post_id: string,
+  type: TimelineItemType
 ) => {
+  const postObjectId = new ObjectId(post_id);
   await db.collection<UserTimelineModel>(UserTimelineCollection).updateOne(
     {
       _id: new ObjectId(user_id),
-      [type + ".post_id"]: { $ne: item.post_id },
+      "timeline.post_id": { $ne: postObjectId },
     },
     {
       $push: {
-        [type]: item,
+        timeline: {
+          post_id: postObjectId,
+          type: type,
+          seen: false,
+          liked: false,
+        },
       },
     }
   );
+};
+
+export const getPostById = async (
+  db: Db,
+  post_id: string
+): Promise<PostModel> => {
+  const post = await db
+    .collection<PostModel>(PostCollection)
+    .findOne({ _id: new ObjectId(post_id) });
+
+  if (post === null) throw new Error("Post is not found");
+
+  return post;
+};
+
+export const createPost = async (
+  db: Db,
+  metadata: Pick<PostModel, "media" | "content" | "part_of" | "author">
+) => {
+  const result = await db.collection<PostModel>(PostCollection).insertOne({
+    ...metadata,
+    deleted: false,
+    like: [],
+    like_aggregate: 0,
+    seen: [],
+    seen_aggregate: 0,
+    time_posted: new Date(),
+  });
+
+  return result.ops[0];
+};
+
+export const updateLike = async (
+  db: Db,
+  user_id: ObjectId,
+  post_id: string,
+  liked: boolean
+) => {
+  const postObjectId = new ObjectId(post_id);
+
+  const timelineUpdate = db
+    .collection<UserTimelineModel>(UserTimelineCollection)
+    .updateOne(
+      { _id: user_id, "timeline.post_id": postObjectId },
+      { $set: { "timeline.$.liked": liked } }
+    );
+
+  if (liked) {
+    const postUpdate = db.collection<PostModel>(PostCollection).updateOne(
+      { _id: postObjectId, "like.by": { $ne: user_id } },
+      {
+        $push: { like: { by: user_id, time: new Date() } },
+        $inc: { like_aggregate: 1 },
+      }
+    );
+
+    await Promise.all([timelineUpdate, postUpdate]);
+    return;
+  } else {
+    const postUpdate = db
+      .collection<PostModel>(PostCollection)
+      .updateOne(
+        { _id: postObjectId },
+        { $pull: { like: { by: user_id } }, $inc: { like_aggregate: -1 } }
+      );
+
+    await Promise.all([timelineUpdate, postUpdate]);
+    return;
+  }
+};
+
+export const updateSeen = async (
+  db: Db,
+  user_id: ObjectId,
+  post_id: string
+) => {
+  const postObjectId = new ObjectId(post_id);
+
+  const timelineUpdate = db
+    .collection<UserTimelineModel>(UserAccountCollection)
+    .updateOne(
+      { _id: user_id, "timeline.post_id": postObjectId },
+      { $set: { "timeline.$.seen": true } }
+    );
+
+  const postUpdate = db.collection<PostModel>(PostCollection).updateOne(
+    { _id: postObjectId, "seen.by": { $ne: user_id } },
+    {
+      $push: {
+        seen: {
+          by: user_id,
+          time: new Date(),
+        },
+      },
+      $inc: {
+        seen_aggregate: 1,
+      },
+    }
+  );
+
+  await Promise.all([timelineUpdate, postUpdate]);
 };
