@@ -2,6 +2,7 @@ import { FastifyPluginAsync } from "fastify";
 import { ObjectId } from "mongodb";
 import {
   Error401Default,
+  UserAccountCollection,
   UsernameCheckV1GetError,
   UsernameCheckV1GetHeaders,
   UsernameCheckV1GetParams,
@@ -24,12 +25,13 @@ import {
   checkInterestMany,
   checkUsername,
   createUser,
+  createUserTimeline,
   getUserById,
   UserAccountModel,
 } from "../../helpers/db_query";
 import { relateUserToInterestMany, User } from "../../helpers/graph/User";
 
-const serialized_user = (user: UserAccountModel): UserV1GetResponse => {
+const serializeUser = (user: UserAccountModel): UserV1GetResponse => {
   return {
     ...user,
     _id: user._id.toHexString(),
@@ -62,7 +64,7 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
       const db = app.mongo.client.db();
 
       try {
-        const user = serialized_user(await getUserById(db, req.params.user_id));
+        const user = serializeUser(await getUserById(db, req.params.user_id));
 
         if (user._id !== req.user_account?._id.toHexString()) {
           delete user.email;
@@ -139,11 +141,12 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
 
       await Promise.all([
         createUser(db, new_user),
+        createUserTimeline(db, req.user?.uid!),
         User.createOne({ id: req.user?.uid!, username: req.body.username }),
       ]);
 
       relateUserToInterestMany(req.user?.uid!, req.body.likes);
-      return res.code(200).send(serialized_user(new_user));
+      return res.code(200).send(serializeUser(new_user));
     }
   );
 
@@ -189,9 +192,10 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
         user_update.is_moderator = is_moderator;
       }
 
-      await db
-        .collection<UserAccountModel>("user_account")
-        .updateOne({ _id: new ObjectId(params.user_id) }, user_update);
+      if (user_update !== {})
+        await db
+          .collection<UserAccountModel>(UserAccountCollection)
+          .updateOne({ _id: new ObjectId(params.user_id) }, user_update);
 
       const updated_user = { ...req.user_account, ...user_update };
       return res.code(200).send(updated_user);
