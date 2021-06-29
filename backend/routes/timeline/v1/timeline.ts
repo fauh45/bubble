@@ -9,7 +9,7 @@ import {
   UserTimelineModel,
   UserTimelineSerialized,
 } from "@bubble/common";
-import { getTimelineById } from "../../helpers/db_query";
+import { getTimelineById } from "../../../helpers/db_query";
 
 const serializeTimelineItem = (item: TimelineItem): TimelineItemSerialized => {
   return {

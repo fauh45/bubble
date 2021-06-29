@@ -15,9 +15,10 @@ import "./helpers/graph";
 import { UserStatus } from "./middleware/decode_auth";
 import { getUserById } from "./helpers/db_query";
 
-import TestV1Route from "./test/v1/test";
-import UserV1Route from "./user/v1/user";
-import TimelineV1Route from "./timeline/v1/timeline";
+import TestV1Route from "./routes/test/v1/test";
+import UserV1Route from "./routes/user/v1/user";
+import TimelineV1Route from "./routes/timeline/v1/timeline";
+import PostV1Route from "./routes/post/v1/post";
 
 const app = fastify({
   logger: logger,
@@ -93,6 +94,7 @@ app.register(fastifyMongodb, {
 app.register(UserV1Route, { prefix: "/user/v1" });
 app.register(TestV1Route, { prefix: "/test/v1" });
 app.register(TimelineV1Route, { prefix: "/timeline/v1" });
+app.register(PostV1Route, { prefix: "/post/v1" });
 
 app.listen(3000).catch((err) => {
   logger.error(err, "Error");
