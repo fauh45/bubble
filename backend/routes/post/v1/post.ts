@@ -24,17 +24,23 @@ import {
   PostV1PostError,
   PostV1PostHeaders,
   PostV1PostResponse,
+  UserTimelineCollection,
+  UserTimelineModel,
 } from "@bubble/common";
 import {
   checkInterest,
   createPost,
   getPostById,
+  spreadPost,
   updateLike,
   updateSeen,
-} from "../../helpers/db_query";
+} from "../../../helpers/db_query";
 import { ObjectId } from "mongodb";
-import { Post } from "../../helpers/graph/Post";
-import { relateUserToPost, unrelateUserToPost } from "../../helpers/graph/User";
+import { Post } from "../../../helpers/graph/Post";
+import {
+  relateUserToPost,
+  unrelateUserToPost,
+} from "../../../helpers/graph/User";
 
 const serializeInteractionItem = (
   item: InteractionItem
@@ -79,12 +85,19 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
     },
     async (req, res) => {
       // In the future there should be check for auth in case of private post
-      // in this version every post is a public post
+      // in this version every post is a public post except if it is deleted
 
       const db = app.mongo.client.db();
       const post = await getPostById(db, req.params.post_id);
 
-      return res.code(400).send(serializePost(post));
+      if (post.deleted) {
+        return res.code(401).send({
+          error: "Post is deleted",
+          message: "Cannot get the post as it is deleted",
+        });
+      }
+
+      return res.code(200).send(serializePost(post));
     }
   );
 
@@ -127,6 +140,8 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
       });
 
       const post_id = result._id.toHexString();
+      spreadPost(db, post_id, req.body.part_of);
+
       const post_in_graph = await Post.createOne({
         id: post_id,
         deleted: result.deleted,
@@ -247,6 +262,25 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
 
       const db = app.mongo.client.db();
 
+      const timeline = await db
+        .collection<UserTimelineModel>(UserTimelineCollection)
+        .findOne(
+          {
+            _id: req.user_account?._id!,
+            "timeline.post_id": new ObjectId(req.params.post_id),
+          },
+          { projection: { timeline: 1 } }
+        );
+
+      if (timeline === null) {
+        return res.code(400).send({
+          error: "Unknown post",
+          message: "The post are not in your timeline",
+        });
+      }
+
+      const timelineItem = timeline.timeline[0];
+
       let workers: Promise<void>[] = [];
       switch (req.params.action) {
         case PostActionV1Actions.like:
@@ -259,6 +293,8 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
               req.params.post_id
             )
           );
+
+          timelineItem.liked = true;
 
           await Promise.all(workers);
           break;
@@ -274,15 +310,27 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
             )
           );
 
+          timelineItem.liked = false;
+
           await Promise.all(workers);
           break;
 
         case PostActionV1Actions.seen:
+          if (timelineItem.seen) {
+            return res.code(400).send({
+              error: "Already seen",
+              message: "The post is already seen by the user",
+            });
+          }
+
           await updateSeen(db, req.user_account?._id!, req.params.post_id);
+
+          timelineItem.seen = true;
+
           break;
       }
 
-      return res.code(200).send({ ok: true });
+      return res.code(200).send(timelineItem);
     }
   );
 

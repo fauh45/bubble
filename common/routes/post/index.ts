@@ -69,10 +69,8 @@ export const PostActionV1PostParams = Type.Intersect([
 ]);
 export type PostActionV1PostParams = Static<typeof PostActionV1PostParams>;
 
-export const PostActionV1PostResponse = Type.Object({
-  ok: Type.Boolean(),
-});
-export type PostActionV1PostResponse = Static<typeof PostActionV1PostResponse>;
+export const PostActionV1PostResponse = TimelineItemSerialized;
+export type PostActionV1PostResponse = TimelineItemSerialized;
 
 export const PostActionV1PostError = CommonError;
 export type PostActionV1PostError = CommonError;

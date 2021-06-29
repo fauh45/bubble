@@ -7,26 +7,10 @@ import {
   PostCollection,
   PostModel,
   TimelineItemType,
+  UserAccountModel,
+  InterestModel,
+  InterestSerialized,
 } from "../../common/build";
-
-export interface UserAccountModel {
-  _id: ObjectId;
-  name: string;
-  is_moderator: boolean;
-  username: string;
-  email: string;
-  bio: string;
-  onboarding: boolean;
-  likes: ObjectId[];
-}
-
-export interface InterestModel {
-  _id: ObjectId;
-  name: string;
-  followers_aggreagate: number;
-  followers: ObjectId[];
-  posts: ObjectId[];
-}
 
 export const getUserById = async (
   db: Db,
@@ -57,6 +41,59 @@ export const checkUsername = async (
   );
 };
 
+export const getInterest = async (
+  db: Db,
+  interest_id: string
+): Promise<InterestModel> => {
+  const interest = await db
+    .collection<InterestModel>(InterestCollection)
+    .findOne({ _id: interest_id });
+
+  if (interest === null) {
+    throw new Error("Interest page not found");
+  }
+
+  return interest;
+};
+
+export const getRandomInterest = async (
+  db: Db,
+  n: number
+): Promise<InterestModel[]> => {
+  const result = db
+    .collection<InterestModel>(InterestCollection)
+    .aggregate([{ $sample: { size: n } }]);
+
+  return await result.toArray();
+};
+
+export const searchInterest = async (
+  db: Db,
+  query: string
+): Promise<InterestModel[]> => {
+  const result = db
+    .collection<InterestModel>(InterestCollection)
+    .find({ $text: { $search: query } }, { limit: 100 });
+
+  return await result.toArray();
+};
+
+export const createInterest = async (
+  db: Db,
+  metadata: Pick<InterestSerialized, "_id" | "description" | "name">
+): Promise<InterestModel> => {
+  const newInterest: InterestModel = {
+    ...metadata,
+    followers: [],
+    followers_aggregate: 0,
+    posts: [],
+  };
+
+  await db.collection<InterestModel>(InterestCollection).insertOne(newInterest);
+
+  return newInterest;
+};
+
 export const checkInterest = async (
   db: Db,
   interest_id: string
@@ -64,10 +101,7 @@ export const checkInterest = async (
   return (
     (await db
       .collection<InterestModel>(InterestCollection)
-      .findOne(
-        { _id: new ObjectId(interest_id) },
-        { projection: { _id: 1 } }
-      )) !== null
+      .findOne({ _id: interest_id }, { projection: { _id: 1 } })) !== null
   );
 };
 
@@ -108,14 +142,14 @@ export const createUserTimeline = async (db: Db, user_id: string) => {
 
 export const addTimelineItem = async (
   db: Db,
-  user_id: string,
+  user_id: ObjectId,
   post_id: string,
   type: TimelineItemType
 ) => {
   const postObjectId = new ObjectId(post_id);
   await db.collection<UserTimelineModel>(UserTimelineCollection).updateOne(
     {
-      _id: new ObjectId(user_id),
+      _id: user_id,
       "timeline.post_id": { $ne: postObjectId },
     },
     {
@@ -159,6 +193,28 @@ export const createPost = async (
   });
 
   return result.ops[0];
+};
+
+export const spreadPost = async (
+  db: Db,
+  post_id: string,
+  interest_id: string
+) => {
+  const interestCollection = db.collection<InterestModel>(InterestCollection);
+
+  const result = await interestCollection.findOneAndUpdate(
+    { _id: interest_id },
+    { $push: { posts: new ObjectId(post_id) } }
+  );
+
+  const workers: Promise<void>[] = [];
+  result.value?.followers.map((follower) => {
+    workers.push(
+      addTimelineItem(db, follower, post_id, TimelineItemType.followed)
+    );
+  });
+
+  await Promise.all(workers);
 };
 
 export const updateLike = async (

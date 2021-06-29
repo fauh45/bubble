@@ -97,8 +97,9 @@ export type PostSerialized = Static<typeof PostSerialized>;
 
 export const InterestCollection = "interest_page";
 export interface InterestModel {
-  _id: ObjectId;
+  _id: string;
   name: string;
+  description: string;
   followers_aggregate: number;
   followers: ObjectId[];
   posts: ObjectId[];
@@ -107,7 +108,8 @@ export interface InterestModel {
 export const InterestSerialized = Type.Object({
   _id: Type.String(),
   name: Type.String(),
-  followers_aggregate: Type.String(),
+  description: Type.String(),
+  followers_aggregate: Type.Number(),
   followers: Type.Array(Type.String()),
   posts: Type.Array(Type.String()),
 });

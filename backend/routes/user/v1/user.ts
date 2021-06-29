@@ -3,6 +3,7 @@ import { ObjectId } from "mongodb";
 import {
   Error401Default,
   UserAccountCollection,
+  UserAccountModel,
   UsernameCheckV1GetError,
   UsernameCheckV1GetHeaders,
   UsernameCheckV1GetParams,
@@ -27,9 +28,8 @@ import {
   createUser,
   createUserTimeline,
   getUserById,
-  UserAccountModel,
-} from "../../helpers/db_query";
-import { relateUserToInterestMany, User } from "../../helpers/graph/User";
+} from "../../../helpers/db_query";
+import { relateUserToInterestMany, User } from "../../../helpers/graph/User";
 
 const serializeUser = (user: UserAccountModel): UserV1GetResponse => {
   return {
