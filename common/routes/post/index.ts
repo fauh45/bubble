@@ -4,7 +4,7 @@ import { AuthorizationHeader } from "../../headers";
 import { PostSerialized, TimelineItemSerialized } from "../../models";
 
 /* GET "/post/v1/:post_id" */
-export const PostV1GetHeaders = Type.Optional(AuthorizationHeader);
+export const PostV1GetHeaders = Type.Partial(AuthorizationHeader);
 export type PostV1GetHeaders = Static<typeof PostV1GetHeaders>;
 
 export const PostV1GetParams = Type.Object({

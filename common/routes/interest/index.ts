@@ -4,7 +4,7 @@ import { AuthorizationHeader } from "../../headers";
 import { InterestSerialized } from "../../models";
 
 /* GET "/interest/v1/:interest_id" */
-export const InterestV1GetHeaders = Type.Optional(AuthorizationHeader);
+export const InterestV1GetHeaders = Type.Partial(AuthorizationHeader);
 export type InterestV1GetHeaders = Static<typeof InterestV1GetHeaders>;
 
 export const InterestV1GetParams = Type.Object({

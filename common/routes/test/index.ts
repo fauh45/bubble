@@ -35,7 +35,7 @@ export const TestV1Error = TestV1Response;
 export type TestV1Error = TestV1Response;
 
 /* GET "/test/v1/" */
-export const TestV1GetHeaders = Type.Optional(AuthorizationHeader);
+export const TestV1GetHeaders = Type.Partial(AuthorizationHeader);
 export type TestV1GetHeaders = Static<typeof TestV1GetHeaders>;
 
 export const TestV1GetResponse = Type.Object({

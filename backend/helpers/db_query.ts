@@ -1,4 +1,4 @@
-import { BulkWriteOperation, Db, ObjectId } from "mongodb";
+import { BulkWriteOperation, Db, FilterQuery, ObjectId } from "mongodb";
 import {
   InterestCollection,
   UserAccountCollection,
@@ -11,7 +11,9 @@ import {
   InterestModel,
   InterestSerialized,
   TimelineItem,
-} from "../../common/build";
+  AbuseModel,
+  AbuseCollection,
+} from "@bubble/common";
 
 export const getUserById = async (
   db: Db,
@@ -156,10 +158,16 @@ export const addTimelineItem = async (
     {
       $push: {
         timeline: {
-          post_id: postObjectId,
-          type: type,
-          seen: false,
-          liked: false,
+          $each: [
+            {
+              post_id: postObjectId,
+              type: type,
+              seen: false,
+              liked: false,
+              reported: false,
+            },
+          ],
+          $position: 0,
         },
       },
     }
@@ -210,6 +218,7 @@ export const spreadPost = async (
     type: TimelineItemType.followed,
     seen: false,
     liked: false,
+    reported: false,
   };
 
   const result = await db
@@ -223,7 +232,9 @@ export const spreadPost = async (
           _id: poster_id,
         },
         update: {
-          $push: { timeline: timelineItem },
+          $push: {
+            timeline: { $each: [timelineItem], $position: 0 },
+          },
         },
       },
     },
@@ -238,7 +249,9 @@ export const spreadPost = async (
           _id: follower,
         },
         update: {
-          $push: { timeline: timelineItem },
+          $push: {
+            timeline: { $each: [timelineItem], $position: 0 },
+          },
         },
       },
     });
@@ -318,4 +331,74 @@ export const updateSeen = async (
   );
 
   await Promise.all([timelineUpdate, postUpdate]);
+};
+
+export const getAbuseById = async (
+  db: Db,
+  post_id: string
+): Promise<AbuseModel> => {
+  const abuse = await db.collection<AbuseModel>(AbuseCollection).findOne({
+    _id: new ObjectId(post_id),
+  });
+
+  if (abuse === null)
+    throw new Error("Abuse reports are not available for this post");
+
+  return abuse;
+};
+
+export const getManyAbuse = async (
+  db: Db,
+  n: number,
+  last_id?: string
+): Promise<AbuseModel[]> => {
+  let filter: FilterQuery<AbuseModel> = {};
+
+  if (last_id) {
+    filter = { _id: { $gt: new ObjectId(last_id) } };
+  }
+
+  const cursor = db.collection<AbuseModel>(AbuseCollection).find(filter);
+
+  return await cursor.sort({ last_updated: -1, _id: -1 }).limit(n).toArray();
+};
+
+export const updateAbuse = async (
+  db: Db,
+  post_id: string,
+  reportee: ObjectId,
+  reason: string
+) => {
+  await db.collection<AbuseModel>(AbuseCollection).updateOne(
+    {
+      _id: new ObjectId(post_id),
+      reportee: { $ne: reportee },
+    },
+    {
+      $push: {
+        reason: {
+          $each: [reason],
+          $position: 0,
+        },
+        reportee: reportee,
+      },
+    },
+    { upsert: true }
+  );
+};
+
+export const updateUserReportTimeline = async (
+  db: Db,
+  post_id: string,
+  reportee: ObjectId
+) => {
+  await db.collection<UserTimelineModel>(UserTimelineCollection).updateOne(
+    {
+      _id: reportee,
+      "timeline.post_id": new ObjectId(post_id),
+    },
+    {
+      $set: { "timeline.$.reported": true },
+    }
+  );
 };

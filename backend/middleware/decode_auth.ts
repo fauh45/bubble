@@ -1,6 +1,5 @@
-import { FastifyPluginCallback } from "fastify";
 import firebaseAdmin from "firebase-admin";
-import { getUserById, UserAccountModel } from "../helpers/db_query";
+import { UserAccountModel } from "@bubble/common";
 
 export interface UserStatus {
   /**

@@ -19,6 +19,8 @@ import TestV1Route from "./routes/test/v1/test";
 import UserV1Route from "./routes/user/v1/user";
 import TimelineV1Route from "./routes/timeline/v1/timeline";
 import PostV1Route from "./routes/post/v1/post";
+import AbuseV1Route from "./routes/abuse/v1/abuse";
+import InterestV1Route from "./routes/interest/v1/interest";
 
 const app = fastify({
   logger: logger,
@@ -77,7 +79,9 @@ app.register(fastifySwagger, {
       { name: "Post", description: "Post related endpoints" },
       { name: "Abuse", description: "Content reporting related endpoints" },
     ],
-    schemes: ["https"],
+    // In production it would be https, but http here to make sure swagger
+    // can accessed the server correctly
+    schemes: ["http"],
     consumes: ["application/json"],
     produces: ["application/json"],
   },
@@ -95,6 +99,8 @@ app.register(UserV1Route, { prefix: "/user/v1" });
 app.register(TestV1Route, { prefix: "/test/v1" });
 app.register(TimelineV1Route, { prefix: "/timeline/v1" });
 app.register(PostV1Route, { prefix: "/post/v1" });
+app.register(InterestV1Route, { prefix: "/interest/v1" });
+app.register(AbuseV1Route, { prefix: "/abuse/v1" });
 
 app.listen(3000).catch((err) => {
   logger.error(err, "Error");
