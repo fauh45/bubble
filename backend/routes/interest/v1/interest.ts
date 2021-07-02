@@ -19,7 +19,7 @@ import {
   InterestV1PostError,
   InterestV1PostHeaders,
   InterestV1PostResponse,
-} from "../../../../common/build";
+} from "@bubble/common";
 import {
   createInterest,
   getInterest,

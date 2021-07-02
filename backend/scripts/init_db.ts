@@ -5,7 +5,7 @@ import {
   PostCollection,
   UserAccountCollection,
   UserTimelineCollection,
-} from "../../common/build";
+} from "@bubble/common";
 import { mongoClient } from "../helpers/mongo";
 
 const makeCollection = async () => {
@@ -28,6 +28,7 @@ const makeCollection = async () => {
     .collection(UserAccountCollection)
     .createIndex({ username: "text" }, { unique: true });
   await db.collection(AbuseCollection).createIndex({ reportee: 1 });
+  await db.collection(AbuseCollection).createIndex({ last_updated: -1 });
 };
 
 makeCollection()

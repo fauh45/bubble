@@ -140,7 +140,7 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
       });
 
       const post_id = result._id.toHexString();
-      spreadPost(db, post_id, req.body.part_of);
+      spreadPost(db, post_id, req.user_account?._id!, req.body.part_of);
 
       const post_in_graph = await Post.createOne({
         id: post_id,

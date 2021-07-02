@@ -33,6 +33,7 @@ export enum TimelineItemType {
 export interface TimelineItem {
   seen: boolean;
   liked: boolean;
+  reported: boolean;
   type: TimelineItemType;
   post_id: ObjectId;
 }
@@ -118,12 +119,15 @@ export type InterestSerialized = Static<typeof InterestSerialized>;
 export const AbuseCollection = "abuse";
 export interface AbuseModel {
   _id: ObjectId;
+  last_updated: Date;
   reason: string[];
   reportee: ObjectId[];
 }
 
 export const AbuseSerialized = Type.Object({
   _id: Type.String(),
+  last_updated: Type.String(),
   reason: Type.Array(Type.String()),
   reportee: Type.Array(Type.String()),
 });
+export type AbuseSerialized = Static<typeof AbuseSerialized>;
