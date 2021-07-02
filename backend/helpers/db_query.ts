@@ -1,4 +1,4 @@
-import { Db, ObjectId } from "mongodb";
+import { BulkWriteOperation, Db, ObjectId } from "mongodb";
 import {
   InterestCollection,
   UserAccountCollection,
@@ -10,6 +10,7 @@ import {
   UserAccountModel,
   InterestModel,
   InterestSerialized,
+  TimelineItem,
 } from "../../common/build";
 
 export const getUserById = async (
@@ -195,26 +196,57 @@ export const createPost = async (
   return result.ops[0];
 };
 
+/* WARNING : On big write to many subscriber to an interest could make hickups on the database */
+/* On future update spreading a post should priotized eventual update, than real time update */
 export const spreadPost = async (
   db: Db,
   post_id: string,
+  poster_id: ObjectId,
   interest_id: string
 ) => {
-  const interestCollection = db.collection<InterestModel>(InterestCollection);
+  const postObjectId = new ObjectId(post_id);
+  const timelineItem: TimelineItem = {
+    post_id: postObjectId,
+    type: TimelineItemType.followed,
+    seen: false,
+    liked: false,
+  };
 
-  const result = await interestCollection.findOneAndUpdate(
-    { _id: interest_id },
-    { $push: { posts: new ObjectId(post_id) } }
-  );
+  const result = await db
+    .collection<InterestModel>(InterestCollection)
+    .findOneAndUpdate({ _id: interest_id }, { $push: { posts: postObjectId } });
 
-  const workers: Promise<void>[] = [];
-  result.value?.followers.map((follower) => {
-    workers.push(
-      addTimelineItem(db, follower, post_id, TimelineItemType.followed)
-    );
+  const updateOperations: BulkWriteOperation<UserTimelineModel>[] = [
+    {
+      updateOne: {
+        filter: {
+          _id: poster_id,
+        },
+        update: {
+          $push: { timeline: timelineItem },
+        },
+      },
+    },
+  ];
+
+  result.value?.followers.forEach((follower) => {
+    if (follower === poster_id) return;
+
+    updateOperations.push({
+      updateOne: {
+        filter: {
+          _id: follower,
+        },
+        update: {
+          $push: { timeline: timelineItem },
+        },
+      },
+    });
   });
 
-  await Promise.all(workers);
+  await db
+    .collection<UserTimelineModel>(UserTimelineCollection)
+    .bulkWrite(updateOperations, { ordered: false });
 };
 
 export const updateLike = async (
