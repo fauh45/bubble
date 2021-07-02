@@ -1,56 +1,94 @@
 import React from 'react';
-import { Box, Text } from 'grommet';
+import { Box, Button, Text } from 'grommet';
+import { Flag, Like } from 'grommet-icons';
 
-// interface props extends 
+type TimelineItemProps = {
+    userName: String;
+    content: String;
+    likeTotal: Number;
+}
 
-class TimelineItem extends React.Component{
+class TimelineItem extends React.Component<TimelineItemProps>{
 
-    render(){
-        return(
+    constructor(props: TimelineItemProps) {
+        super(props);
+    }
+
+    render() {
+        return (
             <Box
-                background={{color:'#fafafa'}}
-                // width={{min:'50%', max:'800px'}}
+                background={{ color: { light: '#fff', dark: '333' } }}
                 width='800px'
-                pad={{vertical:'16px', horizontal:'24px'}}
+                pad={{ vertical: '16px', horizontal: '24px' }}
                 direction='column'
-                gap = '16px'
+                gap='16px'
             >
                 {/* User ID */}
                 <Box
-                    direction='column'
+                    direction='row'
+                    justify='between'
                 >
                     <Box
-                        align ='start'
-                        direction='row'
-                        gap='24px'
+                        direction='column'
                     >
-                        <Box>
-                            <img 
-                                height='20px'
-                                width='20px'
-                                src="https://images.pexels.com/photos/20787/pexels-photo.jpg?auto=compress&cs=tinysrgb&h=350"
-                                alt="new"/>
+                        <Box
+                            align='start'
+                            justify='start'
+                            direction='row'
+                            gap='24px'
+                            margin={{bottom:'8px'}}
+                        >
+                            <Box>
+                                <img
+                                    height='20px'
+                                    width='20px'
+                                    src="https://images.pexels.com/photos/20787/pexels-photo.jpg?auto=compress&cs=tinysrgb&h=350"
+                                    alt="new" />
+                            </Box>
+                            <Box
+                                align='start'
+                            >
+                                {this.props.userName}
+                            </Box>
                         </Box>
-                        <Box>
-                            user name
+                        <Box
+                            direction='row'
+                            gap='8px'
+                        >
+                            <Box>
+                                <Text
+                                    color={{light:'#aaaaaa', dark:'#99999'}}
+                                    size='xsmall'
+                                >{Date()}</Text>
+                            </Box>
+                            <Box>
+                                <Text color={{light:'#666666', dark:'#99999'}} size='xsmall'>From</Text>
+                            </Box>
                         </Box>
                     </Box>
-                    <Box>
-                        <Text
-                            size='xsmall'
-                        >{Date()}</Text>
+                    <Box
+                        fill='vertical'
+                        align='start'
+                    >
+                        <Button icon={<Flag size='18px' />} />
                     </Box>
                 </Box>
-
                 {/* The content */}
                 <Box
-                    flex='shrink'
-                    // wrap='true'
-                    overflow={{horizontal:'visible'}}
+                    wrap={true}
                 >
                     <Text>
-                    bababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababa
+                        {this.props.content}
                     </Text>
+                </Box>
+                {/* Interact section */}
+                <Box
+                    direction='row'
+                >
+                    <Button icon={<Like size='18px' />} />
+                    <Box justify='center'>
+                        <Text size='small'>{this.props.likeTotal}</Text>
+                    </Box>
                 </Box>
             </Box>
         );
