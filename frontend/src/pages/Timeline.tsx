@@ -20,7 +20,7 @@ class Timeline extends React.PureComponent<Props>{
         >
           <TimelineCreatePost />
           {data.length > 0?
-          data.map((item)=>{return <TimelineItem userName={item[0].toString()} content={item[1].toString()} likeTotal={item[2]}/>}):null}
+          data.map((item)=>{return <TimelineItem userName={item[0]} content={item[1]} likeTotal={item[2]}/>}):null}
         </Box>
       </Page>
     );
