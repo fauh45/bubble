@@ -4,8 +4,10 @@ import {
   TestV1Response,
   TestV1Error,
   TestV1AgeStatus,
+  TestV1GetHeaders,
+  TestV1GetResponse,
+  TestV1GetError,
 } from "@bubble/common";
-import logger from "../../helpers/logger";
 
 const TestV1Route: FastifyPluginAsync = async (app, opts) => {
   app.post<{ Body: TestV1Body; Response: TestV1Response }>(
@@ -21,8 +23,8 @@ const TestV1Route: FastifyPluginAsync = async (app, opts) => {
       },
     },
     async (req, res) => {
-      logger.info("Requester name : " + req.body.name);
-      logger.info("Requester age : " + req.body.age);
+      app.log.debug("Requester name : " + req.body.name);
+      app.log.debug("Requester age : " + req.body.age);
 
       if (req.body.age && req.body.age >= 18) {
         return res.status(200).send({
@@ -33,6 +35,26 @@ const TestV1Route: FastifyPluginAsync = async (app, opts) => {
       return res.status(401).send({
         status: TestV1AgeStatus.UnderAge,
       });
+    }
+  );
+
+  app.get(
+    "/",
+    {
+      schema: {
+        description: "Test your auth status",
+        headers: TestV1GetHeaders,
+        response: {
+          200: TestV1GetResponse,
+          "4xx": TestV1GetError,
+          "5xx": TestV1GetError,
+        },
+      },
+    },
+    async (req, res) => {
+      app.log.debug(req.user_status, "User status");
+
+      return res.status(200).send(req.user_status);
     }
   );
 

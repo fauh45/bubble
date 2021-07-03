@@ -1,4 +1,6 @@
 import { Type, Static } from "@sinclair/typebox";
+import { CommonError } from "../../errors";
+import { AuthorizationHeader } from "../../headers";
 
 export const TestV1Body = Type.Object({
   name: Type.String({
@@ -27,7 +29,22 @@ export const TestV1Response = Type.Object({
     examples: [TestV1AgeStatus.OK, TestV1AgeStatus.UnderAge],
   }),
 });
-export const TestV1Error = TestV1Response;
-
 export type TestV1Response = Static<typeof TestV1Response>;
+
+export const TestV1Error = TestV1Response;
 export type TestV1Error = TestV1Response;
+
+/* GET "/test/v1/" */
+export const TestV1GetHeaders = Type.Partial(AuthorizationHeader);
+export type TestV1GetHeaders = Static<typeof TestV1GetHeaders>;
+
+export const TestV1GetResponse = Type.Object({
+  exist: Type.Boolean(),
+  token_valid: Type.Boolean(),
+  email_verified: Type.Boolean(),
+  moderator: Type.Boolean(),
+});
+export type TestV1GetResponse = Static<typeof TestV1GetResponse>;
+
+export const TestV1GetError = CommonError;
+export type TestV1GetError = CommonError;
