@@ -1,35 +1,47 @@
-import React from 'react';
-import { RouteComponentProps } from "@reach/router";
-import { Box } from "grommet";
-import Page from '../components/Page';
-import TimelineItem from '../components/TimelineItem';
-import TimelineCreatePost from '../components/TimelineCreatePost';
+import React from "react";
+import { Redirect, RouteComponentProps } from "@reach/router";
+import { Box, Text } from "grommet";
+import Page from "../components/Page";
+import TimelineItem from "../components/TimelineItem";
+import TimelineCreatePost from "../components/TimelineCreatePost";
+import { useQuery } from "react-query";
+import { checkUserAuthStatus, getUserTimeline } from "../api/query";
 
+interface Props extends RouteComponentProps {}
 
-interface Props extends RouteComponentProps { }
+const Timeline: React.FC<Props> = (props) => {
+  const { data: userAuthStatus } = useQuery("userStatus", checkUserAuthStatus);
 
-class Timeline extends React.PureComponent<Props>{
-  render() {
-    return (
-      <Page>
-        <Box
-          fill='horizontal'
-          background={{ color: '#f8dac8' }}
-          direction='column'
-          align='center'
-        >
-          <TimelineCreatePost />
-          {data.length > 0?
-          data.map((item)=>{return <TimelineItem userName={item[0]} content={item[1]} likeTotal={item[2]}/>}):null}
-        </Box>
-      </Page>
-    );
-  };
+  const { status, data, error } = useQuery("timeline", getUserTimeline, {
+    staleTime: 1000 * 60 * 60,
+    enabled: !!userAuthStatus?.exist,
+  });
+
+  if (!userAuthStatus?.exist && userAuthStatus?.token_valid) {
+    return <Redirect to="/onboarding" noThrow />;
+  }
+
+  return (
+    <Page>
+      <Box
+        fill="horizontal"
+        background={{ color: "#f8dac8" }}
+        direction="column"
+        align="center"
+      >
+        <TimelineCreatePost />
+        {status === "loading" ||
+          (status === "idle" && <Text>Loading timeline...</Text>)}
+        {status === "success" &&
+        data?.timeline.length &&
+        data?.timeline.length > 0
+          ? data.timeline.map((item) => {
+              <TimelineItem key={item.post_id} post_id={item.post_id} />;
+            })
+          : null}
+      </Box>
+    </Page>
+  );
 };
-let data:[String, String, Number][];
-data = []
-data.push(['bapa', 'mataneLorem ipsum dolor sit, amet consectetur adipisicing elit. Maiores, expedita ipsum. Omnis beatae sint tenetur iste adipisci? Perferendis eius odit rerum dolores doloremque quis iste praesentium! Quaerat doloremque voluptatibus expedita!' , 2])
-data.push(['pacar','aku mau putus beb.',3])
-data.push(['kakak', 'punya adik gini amat dah',1])
 
 export default Timeline;
