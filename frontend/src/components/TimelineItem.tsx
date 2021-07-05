@@ -10,9 +10,9 @@ type TimelineItemProps = {
 
 class TimelineItem extends React.Component<TimelineItemProps>{
 
-    constructor(props: TimelineItemProps) {
-        super(props);
-    }
+    // constructor(props: TimelineItemProps) {
+    //     super(props);
+    // }
 
     render() {
         return (

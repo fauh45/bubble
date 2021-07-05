@@ -4,9 +4,12 @@ import { Box } from "grommet";
 import Page from '../components/Page';
 import TimelineItem from '../components/TimelineItem';
 import TimelineCreatePost from '../components/TimelineCreatePost';
+import Description from '../components/InterestPageCard';
 
 
-interface Props extends RouteComponentProps { }
+interface Props extends RouteComponentProps {
+
+}
 
 class Timeline extends React.PureComponent<Props>{
   render() {
@@ -18,6 +21,7 @@ class Timeline extends React.PureComponent<Props>{
           direction='column'
           align='center'
         >
+          <Description name={"a"} description={"gg"}/>
           <TimelineCreatePost />
           {data.length > 0?
           data.map((item)=>{return <TimelineItem userName={item[0]} content={item[1]} likeTotal={item[2]}/>}):null}

@@ -7,7 +7,7 @@ class TimelineCreatePost extends React.Component {
             <Box
                 direction='column'
                 width='800px'
-                background={{ color: 'white' }}
+                background={{ color: {light:'#fafafa', dark:'#333333'} }}
                 pad='24px'
                 gap='24px'
             >
