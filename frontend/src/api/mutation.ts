@@ -1,4 +1,6 @@
 import {
+  PostActionV1Actions,
+  PostActionV1PostResponse,
   PostV1PostBody,
   PostV1PostResponse,
   UserV1PostBody,
@@ -30,4 +32,11 @@ export const createNewUser = (body: UserV1PostBody) => {
 
 export const createNewPost = (body: PostV1PostBody) => {
   return commonPost<PostV1PostBody, PostV1PostResponse>("/post/v1/", body);
+};
+
+export const postAction = (action: PostActionV1Actions, post_id: string) => {
+  return commonPost<{}, PostActionV1PostResponse>(
+    `/post/v1/${action}/${post_id}`,
+    {}
+  );
 };

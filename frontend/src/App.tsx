@@ -7,6 +7,7 @@ import { ReactQueryDevtools } from "react-query/devtools";
 
 import firebase from "firebase/app";
 import "firebase/auth";
+
 import { UserContext } from "./context/user";
 
 const firebaseConfig = {

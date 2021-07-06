@@ -151,7 +151,7 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
         post_in_graph.relateTo({
           alias: "PostedByUser",
           where: {
-            id: post_id,
+            id: req.user_account?._id!,
           },
         }),
         post_in_graph.relateTo({
@@ -262,12 +262,13 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
 
       const db = app.mongo.client.db();
 
+      const postObjectId = new ObjectId(req.params.post_id);
       const timeline = await db
         .collection<UserTimelineModel>(UserTimelineCollection)
         .findOne(
           {
             _id: req.user_account?._id!,
-            "timeline.post_id": new ObjectId(req.params.post_id),
+            "timeline.post_id": postObjectId,
           },
           { projection: { timeline: 1 } }
         );
@@ -279,11 +280,29 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
         });
       }
 
-      const timelineItem = timeline.timeline[0];
+      const postIndex = timeline.timeline.findIndex(
+        (item) => item.post_id.toHexString() === req.params.post_id
+      );
+
+      if (postIndex < 0) {
+        return res.code(400).send({
+          error: "Post not in Timeline",
+          message: `Post that you're trying to ${req.params.action} are not in your timeline`,
+        });
+      }
+
+      const timelineItem = timeline.timeline[postIndex];
 
       let workers: Promise<void>[] = [];
       switch (req.params.action) {
         case PostActionV1Actions.like:
+          if (timelineItem.liked) {
+            return res.code(400).send({
+              error: "Already liked",
+              message: "You already liked the post",
+            });
+          }
+
           workers.push(
             updateLike(db, req.user_account?._id!, req.params.post_id, true)
           );
@@ -297,6 +316,13 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
           break;
 
         case PostActionV1Actions.unlike:
+          if (!timelineItem.liked) {
+            return res.code(400).send({
+              error: "Already unliked",
+              message: "You already unliked the post",
+            });
+          }
+
           workers.push(
             updateLike(db, req.user_account?._id!, req.params.post_id, false)
           );

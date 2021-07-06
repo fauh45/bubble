@@ -1,27 +1,36 @@
 import React from "react";
 import { Box, Button, Text } from "grommet";
 import { Flag, Like } from "grommet-icons";
-import { useQuery } from "react-query";
-import { getPost, getUser } from "../api/query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { getInterest, getPost, getUser } from "../api/query";
 import {
+  PostActionV1Actions,
+  PostActionV1PostResponse,
   PostV1GetError,
   PostV1GetResponse,
+  TimelineItemSerialized,
   UserV1GetError,
   UserV1GetResponse,
 } from "@bubble/common";
+import { postAction } from "../api/mutation";
 
-type TimelineItemProps = {
-  post_id: string;
-};
+interface TimelineItemProps extends TimelineItemSerialized {
+  handleAction(post_id: string, new_data: PostActionV1PostResponse): void;
+}
 
 const TimelineItem: React.FC<TimelineItemProps> = (props) => {
   const {
     status: postStatus,
     data: postData,
     error: postError,
-  } = useQuery<PostV1GetResponse, PostV1GetError>(["post", props.post_id], () =>
-    getPost(props.post_id)
+  } = useQuery<PostV1GetResponse, PostV1GetError>(
+    ["post", props.post_id],
+    () => getPost(props.post_id),
+    {
+      staleTime: 1000 * 60 * 5,
+    }
   );
+
   const {
     status: userStatus,
     data: userData,
@@ -30,7 +39,40 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     ["user", postData?.author!],
     () => getUser(postData?.author!),
     {
+      staleTime: 1000 * 60 * 5,
       enabled: !!postData?.author,
+    }
+  );
+
+  const queryClient = useQueryClient();
+
+  const { status: interestStatus, data: interestData } = useQuery(
+    ["interest", postData?.part_of!],
+    () => getInterest(postData?.part_of!),
+    {
+      staleTime: 1000 * 60 * 5,
+      enabled: !!postData?.part_of,
+    }
+  );
+
+  const likeAction = useMutation(
+    () => postAction(PostActionV1Actions.like, props.post_id),
+    {
+      onSuccess: (data) => {
+        props.handleAction(props.post_id, data);
+
+        queryClient.invalidateQueries(["post", props.post_id]);
+      },
+    }
+  );
+  const unlikeAction = useMutation(
+    () => postAction(PostActionV1Actions.unlike, props.post_id),
+    {
+      onSuccess: (data) => {
+        props.handleAction(props.post_id, data);
+
+        queryClient.invalidateQueries(["post", props.post_id]);
+      },
     }
   );
 
@@ -72,18 +114,19 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
           <Box direction="row" gap="8px">
             <Box>
               <Text color={{ light: "#aaaaaa", dark: "#99999" }} size="xsmall">
-                {Date()}
+                {new Date(postData?.time_posted!).toLocaleString()}
               </Text>
             </Box>
             <Box>
               <Text color={{ light: "#666666", dark: "#99999" }} size="xsmall">
-                From
+                From <b>{postData?.part_of}</b> (
+                {interestStatus === "success" && interestData?.name})
               </Text>
             </Box>
           </Box>
         </Box>
         <Box fill="vertical" align="start">
-          <Button icon={<Flag size="18px" />} />
+          <Button icon={<Flag size="18px" />} disabled />
         </Box>
       </Box>
       {/* The content */}
@@ -94,10 +137,17 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
       </Box>
       {/* Interact section */}
       <Box direction="row">
-        <Button icon={<Like size="18px" />} />
+        <Button
+          icon={<Like color={props.liked ? "brand" : "plain"} size="18px" />}
+          onClick={() =>
+            props.liked ? unlikeAction.mutate() : likeAction.mutate()
+          }
+          disabled={likeAction.isLoading || unlikeAction.isLoading}
+        />
         <Box justify="center">
           <Text size="small">
-            {postStatus === "loading" ? 0 : postData?.like_aggregate}
+            {postStatus === "loading" ? 0 : postData?.like_aggregate}{" "}
+            {props.liked ? "Liked!" : null}
           </Text>
         </Box>
       </Box>

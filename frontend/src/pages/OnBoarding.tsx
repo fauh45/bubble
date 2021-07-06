@@ -23,7 +23,10 @@ const OnBoarding: React.FC<Props> = (props) => {
   const queryClient = useQueryClient();
   const { status: userAuthStatus, data: userAuthData } = useQuery(
     "userStatus",
-    checkUserAuthStatus
+    checkUserAuthStatus,
+    {
+      staleTime: 1000 * 60 * 60,
+    }
   );
   const newUserMutation = useMutation((data: UserV1PostBody) =>
     createNewUser(data)
