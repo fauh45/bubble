@@ -3,14 +3,14 @@ import { ObjectId } from "mongodb";
 
 export const UserAccountCollection = "user_account";
 export interface UserAccountModel {
-  _id: ObjectId;
+  _id: string;
   name: string;
   is_moderator: boolean;
   username: string;
   email: string;
   bio: string;
   onboarding: boolean;
-  likes: ObjectId[];
+  likes: string[];
 }
 
 export const UserAccountSerialized = Type.Object({
@@ -38,7 +38,7 @@ export interface TimelineItem {
   post_id: ObjectId;
 }
 export interface UserTimelineModel {
-  _id: ObjectId;
+  _id: string;
   timeline: TimelineItem[];
 }
 
@@ -57,15 +57,15 @@ export type UserTimelineSerialized = Static<typeof UserTimelineSerialized>;
 
 export const PostCollection = "post";
 export interface InteractionItem {
-  by: ObjectId;
+  by: string;
   time: Date;
 }
 export interface PostModel {
   _id: ObjectId;
   time_posted: Date;
   deleted: boolean;
-  author: ObjectId;
-  part_of: ObjectId;
+  author: string;
+  part_of: string;
   content: string;
   media: string;
   like_aggregate: number;
@@ -102,7 +102,7 @@ export interface InterestModel {
   name: string;
   description: string;
   followers_aggregate: number;
-  followers: ObjectId[];
+  followers: string[];
   posts: ObjectId[];
 }
 
@@ -121,7 +121,7 @@ export interface AbuseModel {
   _id: ObjectId;
   last_updated: Date;
   reason: string[];
-  reportee: ObjectId[];
+  reportee: string[];
 }
 
 export const AbuseSerialized = Type.Object({

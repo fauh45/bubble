@@ -11,7 +11,7 @@ import {
 import { navigate, RouteComponentProps, Redirect } from "@reach/router";
 import Page from "../components/Page";
 import InterestList from "../components/InterestList";
-import { useMutation, useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { checkUserAuthStatus, checkUsername } from "../api/query";
 import { createNewUser } from "../api/mutation";
 import { UserV1PostBody } from "@bubble/common";
@@ -20,6 +20,7 @@ import { Formik } from "formik";
 interface Props extends RouteComponentProps {}
 
 const OnBoarding: React.FC<Props> = (props) => {
+  const queryClient = useQueryClient();
   const { status: userAuthStatus, data: userAuthData } = useQuery(
     "userStatus",
     checkUserAuthStatus
@@ -28,10 +29,11 @@ const OnBoarding: React.FC<Props> = (props) => {
     createNewUser(data)
   );
 
-  if (userAuthData?.exist) {
+  if (userAuthData?.exist || newUserMutation.isSuccess) {
     return <Redirect to="/" />;
   }
 
+  let lastUsername = "";
   const selectedInterestId = new Set<string>();
 
   const handleChoice = (interest_id: string, checked: boolean) => {
@@ -52,6 +54,8 @@ const OnBoarding: React.FC<Props> = (props) => {
       username: data.username,
       name: data.name,
     });
+
+    queryClient.invalidateQueries("userStatus");
   };
 
   const handleValidation = async (
@@ -59,9 +63,12 @@ const OnBoarding: React.FC<Props> = (props) => {
   ): Promise<Partial<formData>> => {
     const errors: Partial<formData> = {};
 
-    const usernameAvailable = await checkUsername(data.username);
-    if (!usernameAvailable.available) {
-      errors.username = "Username has been taken";
+    if (data.username !== lastUsername) {
+      const usernameAvailable = await checkUsername(data.username);
+      if (!usernameAvailable.available) {
+        errors.username = "Username has been taken";
+        lastUsername = data.username;
+      }
     }
 
     if (selectedInterestId.size < 3) {

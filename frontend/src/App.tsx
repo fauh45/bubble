@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Grommet, Text, ThemeType, Box } from "grommet";
-import { Redirect, Router } from "@reach/router";
+import { Redirect, RouteComponentProps, Router } from "@reach/router";
 import loadable from "@loadable/component";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { ReactQueryDevtools } from "react-query/devtools";
 
 import firebase from "firebase/app";
 import "firebase/auth";
+import { UserContext } from "./context/user";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCDePcclwcbZ3_6ejGdJovGbu9SExdjbg0",
@@ -18,13 +20,22 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
 
 const Loading: React.FC = () => (
   <Box align="center">
     <Text size="2xl">Loading...</Text>
   </Box>
 );
+
+const Authenticated: React.FC<RouteComponentProps> = (props) => {
+  const user = useContext(UserContext);
+
+  if (user) {
+    return <>{props.children}</>;
+  } else {
+    return <Redirect to="/login" noThrow />;
+  }
+};
 
 const Timeline = loadable(() => import("./pages/Timeline"), {
   fallback: <Loading />,
@@ -50,24 +61,33 @@ const theme: ThemeType = {
 const queryClient = new QueryClient();
 
 function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Grommet full theme={theme}>
-        <Router>
-          <NotFound default />
-          <Login path="/login" />
+  const [auth, setAuth] = useState<firebase.User | null>(null);
 
-          {firebase.auth().currentUser !== null ? (
-            <>
+  useEffect(() => {
+    firebase.auth().onAuthStateChanged((user) => {
+      setAuth(user);
+    });
+
+    console.log(auth);
+  }, [auth]);
+
+  return (
+    <UserContext.Provider value={auth}>
+      <QueryClientProvider client={queryClient}>
+        <Grommet full theme={theme}>
+          <Router>
+            <NotFound default />
+            <Login path="/login" />
+
+            <Authenticated path="/">
               <Timeline path="/" />
               <OnBoarding path="/onboarding" />
-            </>
-          ) : (
-            <Redirect to="/login" noThrow />
-          )}
-        </Router>
-      </Grommet>
-    </QueryClientProvider>
+            </Authenticated>
+          </Router>
+        </Grommet>
+        <ReactQueryDevtools initialIsOpen />
+      </QueryClientProvider>
+    </UserContext.Provider>
   );
 }
 

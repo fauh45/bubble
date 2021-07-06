@@ -46,7 +46,7 @@ const serializeInteractionItem = (
   item: InteractionItem
 ): InteractionItemSerialized => {
   return {
-    by: item.by.toHexString(),
+    by: item.by,
     time: item.time.toISOString(),
   };
 };
@@ -56,8 +56,8 @@ const serializePost = (post: PostModel): PostSerialized => {
     ...post,
     _id: post._id.toHexString(),
     time_posted: post.time_posted.toISOString(),
-    author: post._id.toHexString(),
-    part_of: post.part_of.toHexString(),
+    author: post.author,
+    part_of: post.part_of,
     like: post.like.map((item) => serializeInteractionItem(item)),
     seen: post.seen.map((item) => serializeInteractionItem(item)),
   };
@@ -135,7 +135,7 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
 
       const result = await createPost(db, {
         ...req.body,
-        part_of: new ObjectId(req.body.part_of),
+        part_of: req.body.part_of,
         author: req.user_account?._id!,
       });
 
@@ -288,10 +288,7 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
             updateLike(db, req.user_account?._id!, req.params.post_id, true)
           );
           workers.push(
-            relateUserToPost(
-              req.user_account?._id.toHexString()!,
-              req.params.post_id
-            )
+            relateUserToPost(req.user_account?._id!, req.params.post_id)
           );
 
           timelineItem.liked = true;
@@ -304,10 +301,7 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
             updateLike(db, req.user_account?._id!, req.params.post_id, false)
           );
           workers.push(
-            unrelateUserToPost(
-              req.user_account?._id.toHexString()!,
-              req.params.post_id
-            )
+            unrelateUserToPost(req.user_account?._id!, req.params.post_id)
           );
 
           timelineItem.liked = false;

@@ -1,10 +1,11 @@
 import React from "react";
 import { Box, Button, Header, Text } from "grommet";
-import { navigate, Redirect } from "@reach/router";
+import { navigate } from "@reach/router";
 import { Google } from "grommet-icons";
 
 import firebase from "firebase/app";
 import "firebase/auth";
+import { UserContext } from "../context/user";
 
 const provider = new firebase.auth.GoogleAuthProvider();
 provider.addScope("https://www.googleapis.com/auth/userinfo.email");
@@ -41,26 +42,42 @@ class LoginForm extends React.Component<LoginFormProps, LoginFormState> {
     };
   }
 
+  static contextType = UserContext;
+  context!: React.ContextType<typeof UserContext>;
+
+  componentDidMount() {
+    if (this.context) {
+      navigate("/");
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.context) {
+      navigate("/");
+    }
+  }
+
   handleAuth() {
     firebase
       .auth()
-      .signInWithPopup(provider)
-      .then((result) => {
-        this.setState({ auth_status: { status: "success" } });
+      .setPersistence(firebase.auth.Auth.Persistence.SESSION)
+      .then(() => {
+        firebase
+          .auth()
+          .signInWithPopup(provider)
+          .then((result) => {
+            console.log(result);
+          })
+          .catch((error) => {
+            this.setState({
+              auth_status: { status: "error", message: error.message },
+            });
+          });
       })
-      .catch((error) => {
-        this.setState({
-          auth_status: { status: "error", message: error.message },
-        });
-      });
+      .catch((err) => console.error(err));
   }
 
   render() {
-    const { auth_status } = this.state;
-    if (auth_status.status === "success") {
-      return <Redirect to="/" />;
-    }
-
     return (
       <Box
         pad={{ vertical: "24px" }}

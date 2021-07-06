@@ -31,8 +31,8 @@ import { Interest } from "../../../helpers/graph/Interest";
 const serializeInterest = (interest: InterestModel): InterestSerialized => {
   return {
     ...interest,
-    followers: interest.followers.map((id) => id.toHexString()),
-    posts: interest.followers.map((id) => id.toHexString()),
+    followers: interest.followers.map((id) => id),
+    posts: interest.posts.map((id) => id.toHexString()),
   };
 };
 

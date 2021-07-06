@@ -34,8 +34,6 @@ import { relateUserToInterestMany, User } from "../../../helpers/graph/User";
 const serializeUser = (user: UserAccountModel): UserV1GetResponse => {
   return {
     ...user,
-    _id: user._id.toHexString(),
-    likes: user.likes.map((like) => like.toHexString()),
   };
 };
 
@@ -66,7 +64,7 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
       try {
         const user = serializeUser(await getUserById(db, req.params.user_id));
 
-        if (user._id !== req.user_account?._id.toHexString()) {
+        if (user._id !== req.user_account?._id) {
           delete user.email;
         }
 
@@ -121,19 +119,19 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
         });
       }
 
-      if (await checkInterestMany(db, req.body.likes)) {
+      if (!(await checkInterestMany(db, req.body.likes))) {
         return res.code(400).send({
-          error: "Username Exist",
-          message: "Username need to be unique",
+          error: "Interest Error",
+          message: "The interest you have inputted are wrong",
         });
       }
 
       const new_user: UserAccountModel = {
-        _id: new ObjectId(req.user?.uid!),
+        _id: req.user?.uid!,
         bio: req.body.bio,
         email: req.user?.email!,
         is_moderator: false,
-        likes: req.body.likes.map((like) => new ObjectId(like)),
+        likes: req.body.likes,
         name: req.body.name,
         onboarding: false,
         username: req.body.username,
@@ -195,7 +193,7 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
       if (user_update !== {})
         await db
           .collection<UserAccountModel>(UserAccountCollection)
-          .updateOne({ _id: new ObjectId(params.user_id) }, user_update);
+          .updateOne({ _id: params.user_id }, user_update);
 
       const updated_user = { ...req.user_account, ...user_update };
       return res.code(200).send(updated_user);

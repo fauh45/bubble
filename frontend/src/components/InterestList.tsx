@@ -8,18 +8,14 @@ interface Props {
   handleChoice(interest_id: string, checked: boolean): void;
 }
 
-let interestitems = [
-  "Programming",
-  "Music",
-  "Art",
-  "Cooking",
-  "Sports",
-  "Science",
-];
-
 const InterestList: React.FC<Props> = (props) => {
-  const { status, data } = useQuery("randomInterest", () =>
-    getRandomInterest(5)
+  const { status, data } = useQuery(
+    "randomInterest",
+    () => getRandomInterest(5),
+    {
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    }
   );
 
   const handleChoice = (interest_id: string, checked: boolean) => {

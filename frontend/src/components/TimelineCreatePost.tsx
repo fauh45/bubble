@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Button, Select, TextArea } from "grommet";
 import { useQuery } from "react-query";
 import { searchInterest } from "../api/query";
-import { InterestSearchV1PostResponse } from "@bubble/common/build";
+import { InterestSearchV1PostResponse } from "@bubble/common";
 
 const TimelineCreatePost: React.FC = (props) => {
   const [query, setQuery] = React.useState("");
@@ -38,10 +38,12 @@ const TimelineCreatePost: React.FC = (props) => {
           clear
           size="small"
           searchPlaceholder="Search interest.."
-          onSearch={(text) => setQuery(text)}
+          onSearch={(text) => setTimeout(() => setQuery(text), 500)}
           plain
           placeholder="Where to post"
-          options={searchQuery.isLoading ? [] : searchQuery.data!}
+          options={
+            searchQuery.isLoading || searchQuery.isIdle ? [] : searchQuery.data!
+          }
           emptySearchMessage={
             searchQuery.isLoading
               ? "Loading..."

@@ -45,7 +45,9 @@ app.addHook("preHandler", async (req, rep) => {
       user_status.token_valid = true;
 
       const { email_verified } = decodedToken;
-      const user = await getUserById(app.mongo.db!, req.user.uid);
+
+      const db = app.mongo.client.db();
+      const user = await getUserById(db, decodedToken.uid);
 
       user_status.exist = true;
       user_status.email_verified =

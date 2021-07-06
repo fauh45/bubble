@@ -54,7 +54,7 @@ export const getInterest = (interest_id: string) => {
 };
 
 export const getRandomInterest = (n: number) => {
-  return commonGet<InterestRandomV1GetResponse>(`/interest/v1/${n}`);
+  return commonGet<InterestRandomV1GetResponse>(`/interest/v1/random/${n}`);
 };
 
 export const searchInterest = (query: string) => {

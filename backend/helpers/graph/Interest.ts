@@ -16,6 +16,7 @@ export type InterestInstance = NeogmaInstance<
 export const Interest = ModelFactory<InterestProperty, InterestRelatedNodes>(
   {
     label: "Interest",
+    primaryKeyField: "id",
     schema: {
       id: {
         type: "string",

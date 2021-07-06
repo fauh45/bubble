@@ -1,5 +1,5 @@
-import React from "react";
-import { Redirect, RouteComponentProps } from "@reach/router";
+import React, { useEffect } from "react";
+import { navigate, RouteComponentProps } from "@reach/router";
 import { Box, Text } from "grommet";
 import Page from "../components/Page";
 import TimelineItem from "../components/TimelineItem";
@@ -12,14 +12,18 @@ interface Props extends RouteComponentProps {}
 const Timeline: React.FC<Props> = (props) => {
   const { data: userAuthStatus } = useQuery("userStatus", checkUserAuthStatus);
 
-  const { status, data, error } = useQuery("timeline", getUserTimeline, {
+  const { status, data } = useQuery("timeline", getUserTimeline, {
     staleTime: 1000 * 60 * 60,
     enabled: !!userAuthStatus?.exist,
   });
 
   if (!userAuthStatus?.exist && userAuthStatus?.token_valid) {
-    return <Redirect to="/onboarding" noThrow />;
+    navigate("/onboarding");
   }
+
+  useEffect(() => {
+    console.log(status, data, userAuthStatus);
+  });
 
   return (
     <Page>
@@ -36,7 +40,7 @@ const Timeline: React.FC<Props> = (props) => {
         data?.timeline.length &&
         data?.timeline.length > 0
           ? data.timeline.map((item) => {
-              <TimelineItem key={item.post_id} post_id={item.post_id} />;
+              return <TimelineItem key={item.post_id} post_id={item.post_id} />;
             })
           : null}
       </Box>
