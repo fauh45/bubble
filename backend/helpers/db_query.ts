@@ -21,7 +21,7 @@ export const getUserById = async (
 ): Promise<UserAccountModel> => {
   const user = await db
     .collection<UserAccountModel>(UserAccountCollection)
-    .findOne({ _id: new ObjectId(user_id) });
+    .findOne({ _id: user_id });
 
   if (user === null) throw new Error("User not found");
 
@@ -125,7 +125,7 @@ export const getTimelineById = async (
 ): Promise<UserTimelineModel> => {
   const timeline = await db
     .collection<UserTimelineModel>(UserTimelineCollection)
-    .findOne({ _id: new ObjectId(user_id) });
+    .findOne({ _id: user_id });
 
   if (timeline === null) throw new Error("User timeline not found");
 
@@ -134,7 +134,7 @@ export const getTimelineById = async (
 
 export const createUserTimeline = async (db: Db, user_id: string) => {
   const timeline: UserTimelineModel = {
-    _id: new ObjectId(user_id),
+    _id: user_id,
     timeline: [],
   };
 
@@ -145,7 +145,7 @@ export const createUserTimeline = async (db: Db, user_id: string) => {
 
 export const addTimelineItem = async (
   db: Db,
-  user_id: ObjectId,
+  user_id: string,
   post_id: string,
   type: TimelineItemType
 ) => {
@@ -209,7 +209,7 @@ export const createPost = async (
 export const spreadPost = async (
   db: Db,
   post_id: string,
-  poster_id: ObjectId,
+  poster_id: string,
   interest_id: string
 ) => {
   const postObjectId = new ObjectId(post_id);
@@ -264,7 +264,7 @@ export const spreadPost = async (
 
 export const updateLike = async (
   db: Db,
-  user_id: ObjectId,
+  user_id: string,
   post_id: string,
   liked: boolean
 ) => {
@@ -301,11 +301,7 @@ export const updateLike = async (
   }
 };
 
-export const updateSeen = async (
-  db: Db,
-  user_id: ObjectId,
-  post_id: string
-) => {
+export const updateSeen = async (db: Db, user_id: string, post_id: string) => {
   const postObjectId = new ObjectId(post_id);
 
   const timelineUpdate = db
@@ -366,7 +362,7 @@ export const getManyAbuse = async (
 export const updateAbuse = async (
   db: Db,
   post_id: string,
-  reportee: ObjectId,
+  reportee: string,
   reason: string
 ) => {
   await db.collection<AbuseModel>(AbuseCollection).updateOne(
@@ -390,7 +386,7 @@ export const updateAbuse = async (
 export const updateUserReportTimeline = async (
   db: Db,
   post_id: string,
-  reportee: ObjectId
+  reportee: string
 ) => {
   await db.collection<UserTimelineModel>(UserTimelineCollection).updateOne(
     {

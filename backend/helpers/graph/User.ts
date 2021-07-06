@@ -8,7 +8,7 @@ import {
 import logger from "../logger";
 import { neogma } from "./index";
 import { Interest, InterestInstance } from "./Interest";
-import { Post, PostInstance } from "./Post";
+import type { Post, PostInstance } from "./Post";
 
 export type UserProperties = {
   id: string;
@@ -46,15 +46,6 @@ export const User = ModelFactory<UserProperties, UserRelatedNodes>(
   },
   neogma
 );
-
-// Defined after the model is defined, because of circular reference
-User.addRelationships({
-  InteractWithPost: {
-    model: Post,
-    direction: "out",
-    name: "INTERACT_WITH",
-  },
-});
 
 export const relateUserToInterest = async (
   user_id: string,
@@ -103,7 +94,6 @@ export const relateUserToPost = async (user_id: string, post_id: string) => {
 export const unrelateUserToPost = async (user_id: string, post_id: string) => {
   const queryRunner = new QueryRunner({
     driver: neogma.driver,
-    logger: logger,
   });
 
   await queryRunner.run(

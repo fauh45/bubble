@@ -22,7 +22,7 @@ const serializeTimeline = (
   timeline: UserTimelineModel
 ): UserTimelineSerialized => {
   return {
-    _id: timeline._id.toHexString(),
+    _id: timeline._id,
     timeline: timeline.timeline.map((item) => serializeTimelineItem(item)),
   };
 };

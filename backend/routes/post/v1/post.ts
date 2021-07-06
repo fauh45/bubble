@@ -46,7 +46,7 @@ const serializeInteractionItem = (
   item: InteractionItem
 ): InteractionItemSerialized => {
   return {
-    by: item.by.toHexString(),
+    by: item.by,
     time: item.time.toISOString(),
   };
 };
@@ -56,8 +56,8 @@ const serializePost = (post: PostModel): PostSerialized => {
     ...post,
     _id: post._id.toHexString(),
     time_posted: post.time_posted.toISOString(),
-    author: post._id.toHexString(),
-    part_of: post.part_of.toHexString(),
+    author: post.author,
+    part_of: post.part_of,
     like: post.like.map((item) => serializeInteractionItem(item)),
     seen: post.seen.map((item) => serializeInteractionItem(item)),
   };
@@ -135,7 +135,7 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
 
       const result = await createPost(db, {
         ...req.body,
-        part_of: new ObjectId(req.body.part_of),
+        part_of: req.body.part_of,
         author: req.user_account?._id!,
       });
 
@@ -151,7 +151,7 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
         post_in_graph.relateTo({
           alias: "PostedByUser",
           where: {
-            id: post_id,
+            id: req.user_account?._id!,
           },
         }),
         post_in_graph.relateTo({
@@ -262,12 +262,13 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
 
       const db = app.mongo.client.db();
 
+      const postObjectId = new ObjectId(req.params.post_id);
       const timeline = await db
         .collection<UserTimelineModel>(UserTimelineCollection)
         .findOne(
           {
             _id: req.user_account?._id!,
-            "timeline.post_id": new ObjectId(req.params.post_id),
+            "timeline.post_id": postObjectId,
           },
           { projection: { timeline: 1 } }
         );
@@ -279,19 +280,34 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
         });
       }
 
-      const timelineItem = timeline.timeline[0];
+      const postIndex = timeline.timeline.findIndex(
+        (item) => item.post_id.toHexString() === req.params.post_id
+      );
+
+      if (postIndex < 0) {
+        return res.code(400).send({
+          error: "Post not in Timeline",
+          message: `Post that you're trying to ${req.params.action} are not in your timeline`,
+        });
+      }
+
+      const timelineItem = timeline.timeline[postIndex];
 
       let workers: Promise<void>[] = [];
       switch (req.params.action) {
         case PostActionV1Actions.like:
+          if (timelineItem.liked) {
+            return res.code(400).send({
+              error: "Already liked",
+              message: "You already liked the post",
+            });
+          }
+
           workers.push(
             updateLike(db, req.user_account?._id!, req.params.post_id, true)
           );
           workers.push(
-            relateUserToPost(
-              req.user_account?._id.toHexString()!,
-              req.params.post_id
-            )
+            relateUserToPost(req.user_account?._id!, req.params.post_id)
           );
 
           timelineItem.liked = true;
@@ -300,14 +316,18 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
           break;
 
         case PostActionV1Actions.unlike:
+          if (!timelineItem.liked) {
+            return res.code(400).send({
+              error: "Already unliked",
+              message: "You already unliked the post",
+            });
+          }
+
           workers.push(
             updateLike(db, req.user_account?._id!, req.params.post_id, false)
           );
           workers.push(
-            unrelateUserToPost(
-              req.user_account?._id.toHexString()!,
-              req.params.post_id
-            )
+            unrelateUserToPost(req.user_account?._id!, req.params.post_id)
           );
 
           timelineItem.liked = false;

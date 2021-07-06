@@ -1,39 +1,73 @@
-import React from 'react';
-import { RouteComponentProps } from "@reach/router";
-import { Box } from "grommet";
-import Page from '../components/Page';
-import TimelineItem from '../components/TimelineItem';
-import TimelineCreatePost from '../components/TimelineCreatePost';
-import Description from '../components/InterestPageCard';
+import React from "react";
+import { navigate, RouteComponentProps } from "@reach/router";
+import { Box, Text } from "grommet";
+import Page from "../components/Page";
+import TimelineItem from "../components/TimelineItem";
+import TimelineCreatePost from "../components/TimelineCreatePost";
+import { useQuery, useQueryClient } from "react-query";
+import { checkUserAuthStatus, getUserTimeline } from "../api/query";
+import { PostActionV1PostResponse } from "../../../common/build";
 
+interface Props extends RouteComponentProps {}
 
-interface Props extends RouteComponentProps {
+const Timeline: React.FC<Props> = (props) => {
+  const { data: userAuthStatus } = useQuery("userStatus", checkUserAuthStatus, {
+    staleTime: 1000 * 60 * 60,
+  });
 
-}
+  const { status, data } = useQuery("timeline", getUserTimeline, {
+    staleTime: 1000 * 60 * 60,
+    enabled: !!userAuthStatus?.exist,
+  });
 
-class Timeline extends React.PureComponent<Props>{
-  render() {
-    return (
-      <Page>
-        <Box
-          fill='horizontal'
-          background={{ color: '#f8dac8' }}
-          direction='column'
-          align='center'
-        >
-          <Description name={"a"} description={"gg"}/>
-          <TimelineCreatePost />
-          {data.length > 0?
-          data.map((item)=>{return <TimelineItem userName={item[0]} content={item[1]} likeTotal={item[2]}/>}):null}
-        </Box>
-      </Page>
+  if (!userAuthStatus?.exist && userAuthStatus?.token_valid) {
+    navigate("/onboarding");
+  }
+
+  const queryClient = useQueryClient();
+
+  const handlePostAction = (
+    post_id: string,
+    new_data: PostActionV1PostResponse
+  ) => {
+    const newTimeline = data?.timeline.map((item) =>
+      item.post_id === post_id ? { ...new_data } : item
     );
+    console.log(newTimeline);
+
+    queryClient.setQueryData("timeline", () => {
+      return { ...data, timeline: newTimeline };
+    });
+    console.log("I've been called!");
   };
+
+  return (
+    <Page>
+      <Box
+        fill="horizontal"
+        background={{ color: "#f8dac8" }}
+        direction="column"
+        align="center"
+      >
+        <TimelineCreatePost />
+        {status === "loading" ||
+          (status === "idle" && <Text>Loading timeline...</Text>)}
+        {status === "success" &&
+        data?.timeline.length &&
+        data?.timeline.length > 0
+          ? data.timeline.map((item) => {
+              return (
+                <TimelineItem
+                  key={item.post_id}
+                  handleAction={handlePostAction}
+                  {...item}
+                />
+              );
+            })
+          : null}
+      </Box>
+    </Page>
+  );
 };
-let data:[String, String, Number][];
-data = []
-data.push(['bapa', 'mataneLorem ipsum dolor sit, amet consectetur adipisicing elit. Maiores, expedita ipsum. Omnis beatae sint tenetur iste adipisci? Perferendis eius odit rerum dolores doloremque quis iste praesentium! Quaerat doloremque voluptatibus expedita!' , 2])
-data.push(['pacar','aku mau putus beb.',3])
-data.push(['kakak', 'punya adik gini amat dah',1])
 
 export default Timeline;

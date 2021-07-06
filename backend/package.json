@@ -30,6 +30,8 @@
     "build": "tsc --build",
     "start": "yarn build && node build/index.js",
     "start:pretty": "yarn start | npx pino-pretty",
-    "migrate": "yarn build && node build/scripts/init_db.js"
+    "migrate": "yarn build && node build/scripts/init_db.js",
+    "populate": "yarn build && node build/scripts/populate.js",
+    "test:neo4j": "yarn build && node build/scripts/neo4j_test.js"
   }
 }

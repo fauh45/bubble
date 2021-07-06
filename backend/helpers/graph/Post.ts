@@ -44,3 +44,12 @@ export const Post = ModelFactory<PostProperties, PostRelatedNodes>(
   },
   neogma
 );
+
+// Defined after the model is defined, because of circular reference
+User.addRelationships({
+  InteractWithPost: {
+    model: Post,
+    direction: "out",
+    name: "INTERACT_WITH",
+  },
+});
