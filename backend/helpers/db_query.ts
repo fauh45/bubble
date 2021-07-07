@@ -124,7 +124,10 @@ export const addInterestFollower = async (
 ) => {
   await db
     .collection<InterestModel>(InterestCollection)
-    .updateOne({ _id: interest_id }, { $push: { followers: user_id } });
+    .updateOne(
+      { _id: interest_id },
+      { $addToSet: { followers: user_id }, $inc: { followers_aggregate: 1 } }
+    );
 };
 
 export const addInterestFollowerMany = async (
@@ -144,6 +147,9 @@ export const addInterestFollowerMany = async (
           $addToSet: {
             followers: user_id,
           },
+          $inc: {
+            followers_aggregate: 1,
+          },
         },
       },
     });
@@ -161,7 +167,10 @@ export const removeInterestFollower = async (
 ) => {
   await db
     .collection<InterestModel>(InterestCollection)
-    .updateOne({ _id: interest_id }, { $pull: { followers: user_id } });
+    .updateOne(
+      { _id: interest_id },
+      { $pull: { followers: user_id }, $inc: { followers_aggregate: -1 } }
+    );
 };
 
 export const checkInterest = async (
