@@ -44,6 +44,26 @@ export const checkUsername = async (
   );
 };
 
+export const addUserInterest = async (
+  db: Db,
+  user_id: string,
+  interest_id: string
+) => {
+  await db
+    .collection<UserAccountModel>(UserAccountCollection)
+    .updateOne({ _id: user_id }, { $addToSet: { likes: interest_id } });
+};
+
+export const removeUserInterest = async (
+  db: Db,
+  user_id: string,
+  interest_id: string
+) => {
+  await db
+    .collection<UserAccountModel>(UserAccountCollection)
+    .updateOne({ _id: user_id }, { $pull: { likes: interest_id } });
+};
+
 export const getInterest = async (
   db: Db,
   interest_id: string
@@ -95,6 +115,53 @@ export const createInterest = async (
   await db.collection<InterestModel>(InterestCollection).insertOne(newInterest);
 
   return newInterest;
+};
+
+export const addInterestFollower = async (
+  db: Db,
+  user_id: string,
+  interest_id: string
+) => {
+  await db
+    .collection<InterestModel>(InterestCollection)
+    .updateOne({ _id: interest_id }, { $push: { followers: user_id } });
+};
+
+export const addInterestFollowerMany = async (
+  db: Db,
+  user_id: string,
+  interest_ids: string[]
+) => {
+  const updateOperations: BulkWriteOperation<InterestModel>[] = [];
+
+  interest_ids.forEach((interest_id) => {
+    updateOperations.push({
+      updateOne: {
+        filter: {
+          _id: interest_id,
+        },
+        update: {
+          $addToSet: {
+            followers: user_id,
+          },
+        },
+      },
+    });
+  });
+
+  await db
+    .collection<InterestModel>(InterestCollection)
+    .bulkWrite(updateOperations);
+};
+
+export const removeInterestFollower = async (
+  db: Db,
+  user_id: string,
+  interest_id: string
+) => {
+  await db
+    .collection<InterestModel>(InterestCollection)
+    .updateOne({ _id: interest_id }, { $pull: { followers: user_id } });
 };
 
 export const checkInterest = async (

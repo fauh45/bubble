@@ -1,6 +1,11 @@
 import { FastifyPluginAsync } from "fastify";
 import {
   Error401Default,
+  InterestActionV1Actions,
+  InterestActionV1PostError,
+  InterestActionV1PostHeaders,
+  InterestActionV1PostParams,
+  InterestActionV1PostResponse,
   InterestModel,
   InterestRandomV1GetError,
   InterestRandomV1GetHeaders,
@@ -21,9 +26,15 @@ import {
   InterestV1PostResponse,
 } from "@bubble/common";
 import {
+  addInterestFollower,
+  addUserInterest,
+  checkInterest,
   createInterest,
   getInterest,
   getRandomInterest,
+  getUserById,
+  removeInterestFollower,
+  removeUserInterest,
   searchInterest,
 } from "../../../helpers/db_query";
 import { Interest } from "../../../helpers/graph/Interest";
@@ -133,6 +144,91 @@ const InterestV1Route: FastifyPluginAsync = async (app, opts) => {
       ]);
 
       return res.code(200).send(serializeInterest(newInterest[1]));
+    }
+  );
+
+  app.post<{
+    Headers: InterestActionV1PostHeaders;
+    Params: InterestActionV1PostParams;
+    Response: InterestActionV1PostResponse;
+  }>(
+    "/:action/:interest_id",
+    {
+      schema: {
+        description: "Action for interest for user to follow and unfollow",
+        tags: ["Interest"],
+        headers: InterestActionV1PostHeaders,
+        params: InterestActionV1PostParams,
+        response: {
+          200: InterestActionV1PostResponse,
+          "4xx": InterestActionV1PostError,
+          "5xx": InterestActionV1PostError,
+        },
+      },
+    },
+    async (req, res) => {
+      if (!req.user_status.exist || !req.user_status.token_valid) {
+        return res.code(401).send(Error401Default);
+      }
+
+      const db = app.mongo.client.db();
+      if (!(await checkInterest(db, req.params.interest_id))) {
+        return res.code(400).send({
+          error: "Interest Error",
+          message: "The interest you have inputted are invalid",
+        });
+      }
+
+      const user = await getUserById(db, req.user_account?._id!);
+
+      switch (req.params.action) {
+        case InterestActionV1Actions.follow:
+          if (user.likes.includes(req.params.interest_id)) {
+            return res.code(400).send({
+              error: "Interest Error",
+              message: "You have already followed this interest",
+            });
+          }
+
+          await Promise.all([
+            addInterestFollower(
+              db,
+              req.user_account?._id!,
+              req.params.interest_id
+            ),
+            addUserInterest(db, req.user_account?._id!, req.params.interest_id),
+          ]);
+
+          return res
+            .code(200)
+            .send({ ...user, likes: user.likes.push(req.params.interest_id) });
+
+        case InterestActionV1Actions.unfollow:
+          if (!user.likes.includes(req.params.interest_id)) {
+            return res.code(400).send({
+              error: "Interest Error",
+              message: "You have not followed this interest",
+            });
+          }
+
+          await Promise.all([
+            removeInterestFollower(
+              db,
+              req.user_account?._id!,
+              req.params.interest_id
+            ),
+            removeUserInterest(
+              db,
+              req.user_account?._id!,
+              req.params.interest_id
+            ),
+          ]);
+
+          return res.code(200).send({
+            ...user,
+            likes: user.likes.filter((val) => val !== req.params.interest_id),
+          });
+      }
     }
   );
 

@@ -33,12 +33,10 @@ const Timeline: React.FC<Props> = (props) => {
     const newTimeline = data?.timeline.map((item) =>
       item.post_id === post_id ? { ...new_data } : item
     );
-    console.log(newTimeline);
 
     queryClient.setQueryData("timeline", () => {
       return { ...data, timeline: newTimeline };
     });
-    console.log("I've been called!");
   };
 
   return (
