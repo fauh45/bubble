@@ -23,6 +23,7 @@ import {
   UserV1PostResponse,
 } from "@bubble/common";
 import {
+  addInterestFollowerMany,
   checkInterestMany,
   checkUsername,
   createUser,
@@ -140,6 +141,7 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
       await Promise.all([
         createUser(db, new_user),
         createUserTimeline(db, req.user?.uid!),
+        addInterestFollowerMany(db, req.user?.uid!, req.body.likes),
         User.createOne({ id: req.user?.uid!, username: req.body.username }),
       ]);
 

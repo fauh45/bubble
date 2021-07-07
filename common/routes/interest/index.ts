@@ -1,7 +1,7 @@
 import { Static, Type } from "@sinclair/typebox";
 import { CommonError } from "../../errors";
 import { AuthorizationHeader } from "../../headers";
-import { InterestSerialized } from "../../models";
+import { InterestSerialized, UserAccountSerialized } from "../../models";
 
 /* GET "/interest/v1/:interest_id" */
 export const InterestV1GetHeaders = Type.Partial(AuthorizationHeader);
@@ -53,6 +53,28 @@ export type InterestV1PostResponse = InterestSerialized;
 
 export const InterestV1PostError = CommonError;
 export type InterestV1PostError = CommonError;
+
+/* POST "/interest/v1/:action/:interest_id" */
+export const InterestActionV1PostHeaders = AuthorizationHeader;
+export type InterestActionV1PostHeaders = AuthorizationHeader;
+
+export enum InterestActionV1Actions {
+  follow = "follow",
+  unfollow = "unfollow",
+}
+export const InterestActionV1PostParams = Type.Object({
+  action: Type.Enum(InterestActionV1Actions),
+  interest_id: Type.String(),
+});
+export type InterestActionV1PostParams = Static<
+  typeof InterestActionV1PostParams
+>;
+
+export const InterestActionV1PostResponse = UserAccountSerialized;
+export type InterestActionV1PostResponse = UserAccountSerialized;
+
+export const InterestActionV1PostError = CommonError;
+export type InterestActionV1PostError = CommonError;
 
 /* POST "/interest/v1/search/" */
 export const InterestSearchV1PostHeaders = InterestV1GetHeaders;
