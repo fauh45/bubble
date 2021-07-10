@@ -1,47 +1,47 @@
 import React from 'react';
 import { RouteComponentProps } from '@reach/router';
-import { Box } from 'grommet';
-import Page from '../components/Page';
+import { Box, Layer } from 'grommet';
+// import Page from '../components/Page';
 import LoginForm from '../components/LoginForm';
 
-interface Props extends RouteComponentProps{}
+interface Props extends RouteComponentProps { }
 
 class Login extends React.Component<Props>{
-    render(){
-        return(
-            <Page>
-                <Box
-                    align="center"
-                    justify="center"
-                    // flex="shrink"
-                    
-                    fill="horizontal"
-                    overflow="auto"
-                    // background={{color:"blue"}}
-                    // margin={{vertical:""}}
-                    pad={{horizontal:"32px", vertical:"64px"}}
-                >
+    render() {
+        return (
+            // <Page  header={false}>
+            <Layer full position='center' animate={false} animation={false}>
+                <Box fill align='center' justify='center'>
                     <Box
-                        align="start"
-                        elevation="medium"
-                        flex="grow"
+                        align="center"
+                        justify="center"
+                        fill="horizontal"
                         overflow="auto"
-                        background={{color:"#f1651d"}}
-                        direction="row-responsive"
-                        height={{max:'800px'}}
-                        round="15px"
+                    pad={{horizontal:"32px", vertical:"64px"}}
                     >
                         <Box
+                            align="start"
+                            elevation="medium"
                             flex="grow"
-                            fill="vertical"
-                            pad={{vertical:'16px', horizontal:'32px'}}
+                            overflow="auto"
+                            background={{ color: "#F95700" }}
+                            direction="row-responsive"
+                            height={{ max: '800px' }}
+                            round="15px"
                         >
-                            <LoginForm/>
-                        </Box>
+                            <Box
+                                flex="grow"
+                                fill="vertical"
+                                pad={{ vertical: '16px', horizontal: '32px' }}
+                            >
+                                <LoginForm />
+                            </Box>
 
+                        </Box>
                     </Box>
                 </Box>
-            </Page>
+            </Layer>
+            // </Page>
         );
     }
 }

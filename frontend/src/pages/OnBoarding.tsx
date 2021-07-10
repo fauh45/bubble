@@ -84,11 +84,11 @@ const OnBoarding: React.FC<Props> = (props) => {
   };
 
   return (
-    <Page>
+ 
+    <Page  header={false}>
       <Box
         fill="horizontal"
         overflow="auto"
-        // background={{color:{light:'#fff', dark:'#333'}}}
       >
         <Box margin={{ vertical: "24px", horizontal: "40px" }} gap="40px">
           <Formik
@@ -150,34 +150,39 @@ const OnBoarding: React.FC<Props> = (props) => {
                   />
                 </FormField>
 
-                <Heading margin="0" level="1">
-                  Choose 3 to 5 interests.
-                </Heading>
+                <Box
+                  direction='column'
+                  gap='24px'
+                >
+                  <Heading margin="0" level="4">
+                    Choose 3 to 5 interests.
+                  </Heading>
 
-                <Box overflow="auto" flex="shrink" responsive>
-                  {userAuthStatus === "loading" && <Text>Loading...</Text>}
-                  {userAuthStatus === "success" && (
-                    <InterestList handleChoice={handleChoice} />
-                  )}
-                </Box>
-
-                <Box direction="row" gap="32px">
-                  <Box>
-                    <Button
-                      label="Back"
-                      secondary
-                      onClick={() => {
-                        navigate(-1);
-                      }}
-                    />
+                  <Box overflow="auto" flex="shrink" responsive>
+                    {userAuthStatus === "loading" && <Text>Loading...</Text>}
+                    {userAuthStatus === "success" && (
+                      <InterestList handleChoice={handleChoice} />
+                    )}
                   </Box>
-                  <Box>
-                    <Button
-                      label="Ok"
-                      primary
-                      disabled={newUserMutation.isLoading}
-                      type="submit"
-                    />
+
+                  <Box direction="row" gap="32px">
+                    <Box>
+                      <Button
+                        label="Back"
+                        secondary
+                        onClick={() => {
+                          navigate(-1);
+                        }}
+                      />
+                    </Box>
+                    <Box>
+                      <Button
+                        label="Ok"
+                        primary
+                        disabled={newUserMutation.isLoading}
+                        type="submit"
+                      />
+                    </Box>
                   </Box>
                 </Box>
               </Form>

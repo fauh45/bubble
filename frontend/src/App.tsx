@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import { Grommet, Text, ThemeType, Box } from "grommet";
+import { Grommet, ThemeType, Layer, Box, Spinner } from "grommet";
 import { Redirect, RouteComponentProps, Router } from "@reach/router";
 import loadable from "@loadable/component";
 import { QueryClient, QueryClientProvider } from "react-query";
@@ -23,9 +23,11 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 
 const Loading: React.FC = () => (
-  <Box align="center">
-    <Text size="2xl">Loading...</Text>
-  </Box>
+  <Layer full animate={false} animation={false}>
+    <Box align="center" justify='center' fill>
+      <Spinner size='medium'/>
+    </Box>
+  </Layer>
 );
 
 const Authenticated: React.FC<RouteComponentProps> = (props) => {
