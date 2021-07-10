@@ -24,10 +24,12 @@ import {
   PostV1PostError,
   PostV1PostHeaders,
   PostV1PostResponse,
+  TimelineItemType,
   UserTimelineCollection,
   UserTimelineModel,
 } from "@bubble/common";
 import {
+  addTimelineItem,
   checkInterest,
   createPost,
   getPostById,
@@ -244,7 +246,7 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
     {
       schema: {
         description:
-          "As user either like, unlike, and seen this particular post id",
+          "As user either like, unlike, and seen this particular post id. If post is not found in timeline, then it will be added",
         tags: ["User", "Post"],
         headers: PostActionV1PostHeaders,
         params: PostActionV1PostParams,
@@ -262,33 +264,44 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
 
       const db = app.mongo.client.db();
 
-      const postObjectId = new ObjectId(req.params.post_id);
       const timeline = await db
         .collection<UserTimelineModel>(UserTimelineCollection)
         .findOne(
           {
             _id: req.user_account?._id!,
-            "timeline.post_id": postObjectId,
           },
           { projection: { timeline: 1 } }
         );
 
       if (timeline === null) {
         return res.code(400).send({
-          error: "Unknown post",
-          message: "The post are not in your timeline",
+          error: "Unknown timeline",
+          message:
+            "Your account does not have timeline yet, contact the Admin about this",
         });
       }
 
-      const postIndex = timeline.timeline.findIndex(
+      let postIndex = timeline.timeline.findIndex(
         (item) => item.post_id.toHexString() === req.params.post_id
       );
 
       if (postIndex < 0) {
-        return res.code(400).send({
-          error: "Post not in Timeline",
-          message: `Post that you're trying to ${req.params.action} are not in your timeline`,
+        await addTimelineItem(
+          db,
+          req.user_account?._id!,
+          req.params.post_id,
+          TimelineItemType.followed
+        );
+
+        timeline.timeline.push({
+          liked: false,
+          post_id: new ObjectId(req.params.post_id),
+          reported: false,
+          seen: false,
+          type: TimelineItemType.recommended,
         });
+
+        postIndex = timeline.timeline.length - 1;
       }
 
       const timelineItem = timeline.timeline[postIndex];

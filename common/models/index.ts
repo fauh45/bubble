@@ -45,6 +45,7 @@ export interface UserTimelineModel {
 export const TimelineItemSerialized = Type.Object({
   seen: Type.Boolean(),
   liked: Type.Boolean(),
+  reported: Type.Boolean(),
   type: Type.Enum(TimelineItemType),
   post_id: Type.String(),
 });

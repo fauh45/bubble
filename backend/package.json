@@ -6,8 +6,10 @@
   "license": "MIT",
   "private": true,
   "devDependencies": {
+    "@types/ioredis": "^4.26.5",
     "@types/mongodb": "^3.6.18",
     "@types/node": "^15.12.2",
+    "@types/node-cron": "^2.0.4",
     "@types/pino": "^6.3.8",
     "typescript": "^4.3.3"
   },
@@ -17,13 +19,15 @@
     "dayjs": "^1.10.5",
     "dotenv": "^10.0.0",
     "fastify": "^3.18.0",
-    "fastify-auth": "1.0.1",
     "fastify-cors": "^6.0.1",
     "fastify-mongodb": "^2.0.1",
+    "fastify-rate-limit": "^5.5.0",
     "fastify-swagger": "^4.7.0",
     "firebase-admin": "^9.9.0",
+    "ioredis": "^4.27.6",
     "mongodb": "^3.6.9",
     "neogma": "^1.9.1",
+    "node-cron": "^3.0.0",
     "pino": "^6.11.3"
   },
   "scripts": {
