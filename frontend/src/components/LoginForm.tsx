@@ -87,10 +87,10 @@ class LoginForm extends React.Component<LoginFormProps, LoginFormState> {
         gap="64px"
       >
         <Header gap="16px" align="start" direction="column">
-          <Text color="#000" weight="bold" size="large">
+          <Text color="#FFFFFF" weight="bold" size="large">
             Sign in!
           </Text>
-          <Text color="#000" size="small">
+          <Text color="#FFFFFF" size="small">
             Welcome to Bubble!
           </Text>
         </Header>

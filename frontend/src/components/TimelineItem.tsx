@@ -1,6 +1,6 @@
 import React from "react";
-import { Box, Button, Text } from "grommet";
-import { Flag, Like } from "grommet-icons";
+import { Box, Button, Menu, Text } from "grommet";
+import { More, Flag, Trash, User, Like } from "grommet-icons";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { getInterest, getPost, getUser } from "../api/query";
 import {
@@ -13,6 +13,7 @@ import {
   UserV1GetResponse,
 } from "@bubble/common";
 import { postAction } from "../api/mutation";
+import ColorHash from 'color-hash'
 
 interface TimelineItemProps extends TimelineItemSerialized {
   handleAction(post_id: string, new_data: PostActionV1PostResponse): void;
@@ -50,7 +51,7 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     ["interest", postData?.part_of!],
     () => getInterest(postData?.part_of!),
     {
-      staleTime: 1000 * 60 * 5,
+      staleTime: 1000 * 10,
       enabled: !!postData?.part_of,
     }
   );
@@ -76,9 +77,14 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     }
   );
 
+
+  var colorHash = new ColorHash({hue: [ {min: 30, max: 90}, {min: 180, max: 210}, {min: 270, max: 285} ], lightness:0.5});
+  let userNameColor:string = userData?.username || '';
+
   return (
     <Box
-      background={{ color: { light: "#fff", dark: "333" } }}
+      background={{ color: { light: "#FFFFFF", dark: "#333333" } }}
+      border={{ color: '#E6E6E6' }}
       width="800px"
       pad={{ vertical: "16px", horizontal: "24px" }}
       direction="column"
@@ -91,16 +97,13 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
             align="start"
             justify="start"
             direction="row"
-            gap="24px"
+            gap="16px"
             margin={{ bottom: "8px" }}
           >
-            <Box>
-              <img
-                height="20px"
-                width="20px"
-                src="https://images.pexels.com/photos/20787/pexels-photo.jpg?auto=compress&cs=tinysrgb&h=350"
-                alt="new"
-              />
+            <Box  fill='vertical' align='end' justify='end'>
+              <Box round='full' height='24px' overflow='hidden' width='24px' background={{color:colorHash.hex(userNameColor)}} align='center' justify='end'>
+                <User size='16px'/>
+              </Box>
             </Box>
             {postStatus === "loading" ||
               (userStatus === "loading" && <Box align="start">Loading...</Box>)}
@@ -126,7 +129,24 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
           </Box>
         </Box>
         <Box fill="vertical" align="start">
-          <Button icon={<Flag size="18px" />} disabled />
+          <Menu 
+            dropProps={{
+              align: { top: 'bottom', right: 'right' },
+              elevation: 'medium',
+            }}
+            icon={<More size='18px'/>} 
+            items={[
+            { 
+              label: (<Text margin={{right:'16px'}}>Report</Text>), 
+              onClick: () => { }, 
+              icon:(<Box fill='vertical' pad={{left:'8px', right:'16px', vertical:'8px'}}><Flag size='small'/></Box>)
+            },
+            { 
+              label: (<Text color='red' margin={{right:'16px'}}>Delete</Text>), 
+              onClick: () => { }, 
+              icon:(<Box fill='vertical' pad={{left:'8px', right:'16px', vertical:'8px'}}><Trash size='small' color='red'/></Box>)
+            },
+          ]} />
         </Box>
       </Box>
       {/* The content */}
@@ -147,7 +167,6 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
         <Box justify="center">
           <Text size="small">
             {postStatus === "loading" ? 0 : postData?.like_aggregate}{" "}
-            {props.liked ? "Liked!" : null}
           </Text>
         </Box>
       </Box>

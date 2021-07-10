@@ -1,19 +1,34 @@
 import React from 'react';
-import { Box, Heading, Text } from 'grommet';
+import { Box, Button, Heading, Text } from 'grommet';
+import {Add, Checkmark} from 'grommet-icons';
 
-type InterestPageCardProps ={
-    name:String;
-    description:String;
+import ColorHash from 'color-hash';
+
+interface InterestPageCardProps {
+    name:string;
+    description:string;
 }
 
 class InterestPageCard extends React.Component<InterestPageCardProps>{
 
+    constructor(props:InterestPageCardProps){
+        super(props);
+
+        this.state={
+            
+        }
+    }
+
     render(){
+
+        let cardColor = new ColorHash()
+
         return(
+
             <Box
                 direction='column'
                 width='800px'
-                background={{ color: {light:'#333333', dark:'#333333'} }}
+                background={{ color:  cardColor.hex(this.props.name)}}
                 pad='24px'
                 gap='24px'
             >
@@ -21,8 +36,20 @@ class InterestPageCard extends React.Component<InterestPageCardProps>{
                     {this.props.name}
                 </Heading>
                 <Text>
-                     {this.props.description}
+                    {this.props.description}
                 </Text>
+                <Box
+                    width='112px'
+                    background={{color:'whitesmoke'}}
+                    round
+                >
+                    <Button
+                        icon={<Add size='16px'/>} // icon={<Checkmark size='16px'/>}
+                        label='Follow' // label ='followed'
+                        secondary // primary 
+                        color="brand"
+                    />
+                </Box>
             </Box>
         );
     }

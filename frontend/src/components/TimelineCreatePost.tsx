@@ -63,6 +63,7 @@ const TimelineCreatePost: React.FC = (props) => {
 
   return (
     <Box
+      border={{color:'#E6E6E6', side:'all'}}
       direction="column"
       width="800px"
       background={{ color: "white" }}
@@ -131,12 +132,16 @@ const TimelineCreatePost: React.FC = (props) => {
               }}
             />
           </FormField>
-          <Button
-            primary
-            disabled={newPostMutation.isLoading}
-            type="submit"
-            label="Post"
-          />
+          <Box
+            height="64px"
+          >
+            <Button
+              primary
+              disabled={newPostMutation.isLoading}
+              type="submit"
+              label="Post"
+            />
+          </Box>
         </Box>
       </Form>
     </Box>
