@@ -16,7 +16,7 @@ const Timeline: React.FC<Props> = (props) => {
   });
 
   const { status, data } = useQuery("timeline", getUserTimeline, {
-    staleTime: 1000 * 60 * 60,
+    staleTime: 1000 * 10,
     enabled: !!userAuthStatus?.exist,
   });
 
@@ -40,30 +40,37 @@ const Timeline: React.FC<Props> = (props) => {
   };
 
   return (
-    <Page>
-      <Box
-        fill="horizontal"
-        background={{ color: "#f8dac8" }}
-        direction="column"
-        align="center"
-      >
-        <TimelineCreatePost />
-        {status === "loading" ||
-          (status === "idle" && <Text>Loading timeline...</Text>)}
-        {status === "success" &&
-        data?.timeline.length &&
-        data?.timeline.length > 0
-          ? data.timeline.map((item) => {
-              return (
-                <TimelineItem
-                  key={item.post_id}
-                  handleAction={handlePostAction}
-                  {...item}
-                />
-              );
-            })
-          : null}
-      </Box>
+    <Page header={true}>
+        <Box
+          fill="horizontal"
+          background={{ color: {light:'#FFFFFF', dark:'#333333'}}}
+          direction="column"
+          align="center"
+        >
+          <TimelineCreatePost />
+          {status === "loading" ||
+            (status === "idle" && <Text>Loading timeline...</Text>)}
+          {status === "success" &&
+          data?.timeline.length &&
+          data?.timeline.length > 0
+            ? data.timeline.map((item) => {
+                return (
+                  <TimelineItem
+                    key={item.post_id}
+                    handleAction={handlePostAction}
+                    {...item}
+                  />
+                );
+              })
+            : null}
+            <Box
+              align='center'
+              background='white'
+              width='800px'
+            >
+              .
+            </Box>
+        </Box>
     </Page>
   );
 };
