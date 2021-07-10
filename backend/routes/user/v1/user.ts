@@ -25,7 +25,7 @@ import {
 import {
   addInterestFollowerMany,
   checkInterestMany,
-  checkUsername,
+  checkUsernameAvailable,
   createUser,
   createUserTimeline,
   getUserById,
@@ -113,7 +113,7 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
       const db = app.mongo.client.db();
 
       /* WARNING : Could be slow */
-      if (await checkUsername(db, req.body.username)) {
+      if (!(await checkUsernameAvailable(db, req.body.username))) {
         return res.code(400).send({
           error: "Username Exist",
           message: "Username need to be unique",
@@ -223,9 +223,9 @@ const UserV1Route: FastifyPluginAsync = async (app, opts) => {
     },
     async (req, res) => {
       const db = app.mongo.client.db();
-      return res
-        .code(200)
-        .send({ available: checkUsername(db, req.params.username) });
+      return res.code(200).send({
+        available: await checkUsernameAvailable(db, req.params.username),
+      });
     }
   );
 

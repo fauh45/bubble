@@ -66,13 +66,12 @@ const OnBoarding: React.FC<Props> = (props) => {
   ): Promise<Partial<formData>> => {
     const errors: Partial<formData> = {};
 
-    if (data.username !== lastUsername) {
-      const usernameAvailable = await checkUsername(data.username);
-      if (!usernameAvailable.available) {
-        errors.username = "Username has been taken";
-        lastUsername = data.username;
-      }
-    }
+    console.log(lastUsername);
+
+    const usernameAvailable = await checkUsername(data.username);
+
+    if (!usernameAvailable.available)
+      errors.username = "Username has been taken";
 
     if (selectedInterestId.size < 3) {
       errors.name = "Interest choice are too small, minimal 3";

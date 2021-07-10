@@ -32,16 +32,15 @@ export const createUser = async (db: Db, user: UserAccountModel) => {
   await db.collection<UserAccountModel>(UserAccountCollection).insertOne(user);
 };
 
-export const checkUsername = async (
+export const checkUsernameAvailable = async (
   db: Db,
   username: string
 ): Promise<boolean> => {
-  return (
-    (await db
-      .collection<UserAccountModel>(UserAccountCollection)
-      .findOne({ username: username }, { projection: { username: 1 } })) !==
-    null
-  );
+  const result = await db
+    .collection<UserAccountModel>(UserAccountCollection)
+    .countDocuments({ username: username });
+
+  return result === 0;
 };
 
 export const addUserInterest = async (
