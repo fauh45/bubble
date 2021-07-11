@@ -23,7 +23,7 @@ const makeCollection = async () => {
     .createIndex({ "timeline.post_id": 1 });
   await db.collection(PostCollection).createIndex({ "like.by": 1 });
   await db.collection(PostCollection).createIndex({ "seen.by": 1 });
-  await db.collection(InterestCollection).createIndex({ name: "text" });
+  await db.collection(InterestCollection).createIndex({ name: "text", description: "text" });
   await db
     .collection(UserAccountCollection)
     .createIndex({ username: "text" }, { unique: true });
