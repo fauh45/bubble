@@ -6,19 +6,23 @@ import { InterestSerialized } from "@bubble/common";
 import { useFormik } from "formik";
 import { createNewPost } from "../api/mutation";
 
+interface Props {
+  interest?: InterestSerialized;
+}
+
 interface NewPostForm {
   content: string;
   interest: InterestSerialized | undefined;
 }
 
-const TimelineCreatePost: React.FC = (props) => {
+const TimelineCreatePost: React.FC<Props> = (props) => {
   const newPostMutation = useMutation(createNewPost);
   const queryClient = useQueryClient();
 
   const formik = useFormik<NewPostForm>({
     initialValues: {
       content: "",
-      interest: undefined,
+      interest: props.interest || undefined,
     },
     validate: (values) => {
       let errors: any = {};
@@ -45,6 +49,8 @@ const TimelineCreatePost: React.FC = (props) => {
           onSuccess: () => {
             resetForm();
             queryClient.invalidateQueries("timeline");
+            if (!!props.interest)
+              queryClient.invalidateQueries(["interest", props.interest._id]);
           },
         }
       );
@@ -52,7 +58,7 @@ const TimelineCreatePost: React.FC = (props) => {
   });
 
   const [query, setQuery] = React.useState("");
-  
+
   const searchQuery = useQuery(
     ["interestQuery", query],
     () => searchInterest(query),
@@ -63,7 +69,7 @@ const TimelineCreatePost: React.FC = (props) => {
 
   return (
     <Box
-      border={{color:'#E6E6E6', side:'all'}}
+      border={{ color: "#E6E6E6", side: "all" }}
       direction="column"
       width="800px"
       background={{ color: "white" }}
@@ -106,13 +112,15 @@ const TimelineCreatePost: React.FC = (props) => {
             <Select
               id="interest-input"
               name="interest"
-              disabled={newPostMutation.isLoading}
+              disabled={!!props.interest || newPostMutation.isLoading}
               clear
               size="small"
               searchPlaceholder="Search interest.."
               onSearch={(text) => setTimeout(() => setQuery(text), 500)}
               plain
-              placeholder="Where to post"
+              placeholder={
+                !!props.interest ? props.interest.name : "Where to post"
+              }
               options={
                 searchQuery.isLoading || searchQuery.isIdle
                   ? []
@@ -132,9 +140,7 @@ const TimelineCreatePost: React.FC = (props) => {
               }}
             />
           </FormField>
-          <Box
-            height="64px"
-          >
+          <Box height="64px">
             <Button
               primary
               disabled={newPostMutation.isLoading}
