@@ -456,6 +456,9 @@ export const updateAbuse = async (
         },
         reportee: reportee,
       },
+      $set: {
+        last_updated: new Date(),
+      },
     },
     { upsert: true }
   );
