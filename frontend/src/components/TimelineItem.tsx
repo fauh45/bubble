@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { Box, Button, Menu, Text } from "grommet";
 import { More, Flag, Trash, User, Like } from "grommet-icons";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -20,9 +20,12 @@ import {
   UserV1GetResponse,
 } from "@bubble/common";
 import { postAction } from "../api/mutation";
+
 import ColorHash from "color-hash";
 import { UserContext } from "../context/user";
 import { Link } from "@reach/router";
+import ReportPopUp from '../components/ReportCard';
+import DeletePopUp from '../components/DeleteCard';
 
 interface TimelineItemProps extends TimelineItemSerialized {
   disableSeen?: boolean;
@@ -104,6 +107,7 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     }
   );
 
+
   const colorHash = new ColorHash({
     hue: [
       { min: 30, max: 90 },
@@ -122,6 +126,9 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
   ) {
     seenAction.mutateAsync();
   }
+
+  const [showReportPopUp, setShowReportPopUp] = useState(false)
+  const [showDeletePopUp, setShowDeletePopUp] = useState(false)
 
   return (
     <Box
@@ -203,6 +210,7 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
           </Box>
         </Box>
         <Box fill="vertical" align="start">
+
           {!!user && (
             <Menu
               dropProps={{
@@ -214,7 +222,7 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
                 {
                   disabled: !user || props.reported,
                   label: <Text margin={{ right: "16px" }}>Report</Text>,
-                  onClick: () => {},
+                  onClick: () => { setShowReportPopUp(true)},
                   icon: (
                     <Box
                       fill="vertical"
@@ -235,7 +243,7 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
                       Delete
                     </Text>
                   ),
-                  onClick: () => {},
+                  onClick: ()=> { setShowDeletePopUp(true)},
                   icon: (
                     <Box
                       fill="vertical"
@@ -248,6 +256,9 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
               ]}
             />
           )}
+          {showReportPopUp && <ReportPopUp setterShowReportPopUp={setShowReportPopUp} currentState={showReportPopUp}/>}
+          {showDeletePopUp && <DeletePopUp setterShowDeletePopUp={setShowDeletePopUp} currentState={showDeletePopUp}/>}
+
         </Box>
       </Box>
       {/* The content */}
