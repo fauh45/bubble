@@ -285,7 +285,7 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
         (item) => item.post_id.toHexString() === req.params.post_id
       );
 
-      if (postIndex < 0) {
+      if (postIndex < 0 && req.params.action !== PostActionV1Actions.seen) {
         await addTimelineItem(
           db,
           req.user_account?._id!,

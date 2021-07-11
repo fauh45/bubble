@@ -1,58 +1,84 @@
-import React from 'react';
-import { Box, Button, Heading, Text } from 'grommet';
-import {Add, Checkmark} from 'grommet-icons';
+import React, { useContext } from "react";
+import { Box, Button, Heading, Text } from "grommet";
+import { Add, Checkmark } from "grommet-icons";
 
-import ColorHash from 'color-hash';
+import ColorHash from "color-hash";
+import { UserContext } from "../context/user";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { getUser } from "../api/query";
+import { interestAction } from "../api/mutation";
+import { InterestActionV1Actions } from "@bubble/common";
 
 interface InterestPageCardProps {
-    name:string;
-    description:string;
+  interest_id: string;
+  name: string;
+  description: string;
 }
 
-class InterestPageCard extends React.Component<InterestPageCardProps>{
+const InterestPageCard: React.FC<InterestPageCardProps> = (props) => {
+  const user = useContext(UserContext);
 
-    constructor(props:InterestPageCardProps){
-        super(props);
+  const queryClient = useQueryClient();
 
-        this.state={
-            
-        }
+  const { status, data } = useQuery(
+    ["user", user?.uid!],
+    () => getUser(user?.uid!),
+    {
+      staleTime: 1000 * 60 * 5,
+      enabled: !!user,
     }
+  );
 
-    render(){
+  const isFollowed = () => {
+    return status === "success" && data?.likes.includes(props.interest_id);
+  };
 
-        let cardColor = new ColorHash()
-
-        return(
-
-            <Box
-                direction='column'
-                width='800px'
-                background={{ color:  cardColor.hex(this.props.name)}}
-                pad='24px'
-                gap='24px'
-            >
-                <Heading margin='0'>
-                    {this.props.name}
-                </Heading>
-                <Text>
-                    {this.props.description}
-                </Text>
-                <Box
-                    width='112px'
-                    background={{color:'whitesmoke'}}
-                    round
-                >
-                    <Button
-                        icon={<Add size='16px'/>} // icon={<Checkmark size='16px'/>}
-                        label='Follow' // label ='followed'
-                        secondary // primary 
-                        color="brand"
-                    />
-                </Box>
-            </Box>
-        );
+  const interestActionMutation = useMutation(
+    () =>
+      interestAction(
+        isFollowed()
+          ? InterestActionV1Actions.unfollow
+          : InterestActionV1Actions.follow,
+        props.interest_id
+      ),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["user", user?.uid!]);
+      },
     }
-}
+  );
+
+  const cardColor = new ColorHash();
+
+  return (
+    <Box
+      direction="column"
+      width="800px"
+      background={{ color: cardColor.hex(props.name) }}
+      pad="24px"
+      gap="24px"
+    >
+      <Heading margin="0">{props.name}</Heading>
+      <Text>{props.description}</Text>
+      {!!user && (
+        <Box width="120px" round>
+          <Button
+            icon={
+              isFollowed() ? <Checkmark size="16px" /> : <Add size="16px" />
+            }
+            label={isFollowed() ? "Followed" : "Follow"}
+            secondary={!isFollowed()}
+            primary={isFollowed()}
+            onClick={() => {
+              interestActionMutation.mutate();
+            }}
+            disabled={interestActionMutation.isLoading}
+            color="brand"
+          />
+        </Box>
+      )}
+    </Box>
+  );
+};
 
 export default InterestPageCard;

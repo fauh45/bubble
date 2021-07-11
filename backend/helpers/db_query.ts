@@ -298,7 +298,10 @@ export const spreadPost = async (
 
   const result = await db
     .collection<InterestModel>(InterestCollection)
-    .findOneAndUpdate({ _id: interest_id }, { $push: { posts: postObjectId } });
+    .findOneAndUpdate(
+      { _id: interest_id },
+      { $push: { posts: { $position: 0, $each: [postObjectId] } } }
+    );
 
   const updateOperations: BulkWriteOperation<UserTimelineModel>[] = [
     {

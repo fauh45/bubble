@@ -1,27 +1,41 @@
-import React, {useState} from "react";
+import React, { useContext, useState } from "react";
 import { Box, Button, Menu, Text } from "grommet";
 import { More, Flag, Trash, User, Like } from "grommet-icons";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { getInterest, getPost, getUser } from "../api/query";
+import TimeAgo from "timeago-react";
+import {
+  checkUserAuthStatus,
+  getInterest,
+  getPost,
+  getUser,
+} from "../api/query";
 import {
   PostActionV1Actions,
   PostActionV1PostResponse,
   PostV1GetError,
   PostV1GetResponse,
   TimelineItemSerialized,
+  TimelineItemType,
   UserV1GetError,
   UserV1GetResponse,
 } from "@bubble/common";
 import { postAction } from "../api/mutation";
-import ColorHash from 'color-hash'
+
+import ColorHash from "color-hash";
+import { UserContext } from "../context/user";
+import { Link } from "@reach/router";
 import ReportPopUp from '../components/ReportCard';
 import DeletePopUp from '../components/DeleteCard';
 
 interface TimelineItemProps extends TimelineItemSerialized {
+  disableSeen?: boolean;
+  isVisible: boolean;
   handleAction(post_id: string, new_data: PostActionV1PostResponse): void;
 }
 
 const TimelineItem: React.FC<TimelineItemProps> = (props) => {
+  const user = useContext(UserContext);
+
   const {
     status: postStatus,
     data: postData,
@@ -43,9 +57,13 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     () => getUser(postData?.author!),
     {
       staleTime: 1000 * 60 * 5,
-      enabled: !!postData?.author,
+      enabled: !!postData?.author && !!user,
     }
   );
+
+  const { data: userAuthStatus } = useQuery("userStatus", checkUserAuthStatus, {
+    staleTime: 1000 * 60 * 60,
+  });
 
   const queryClient = useQueryClient();
 
@@ -58,6 +76,16 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     }
   );
 
+  const seenAction = useMutation(
+    () => postAction(PostActionV1Actions.seen, props.post_id),
+    {
+      onSuccess: (data) => {
+        props.handleAction(props.post_id, data);
+
+        queryClient.invalidateQueries(["post", props.post_id]);
+      },
+    }
+  );
   const likeAction = useMutation(
     () => postAction(PostActionV1Actions.like, props.post_id),
     {
@@ -79,8 +107,25 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     }
   );
 
-  var colorHash = new ColorHash({hue: [ {min: 30, max: 90}, {min: 180, max: 210}, {min: 270, max: 285} ], lightness:0.5});
-  let userNameColor:string = userData?.username || '';
+
+  const colorHash = new ColorHash({
+    hue: [
+      { min: 30, max: 90 },
+      { min: 180, max: 210 },
+      { min: 270, max: 285 },
+    ],
+    lightness: 0.5,
+  });
+  const userNameColor: string = userData?.username || postData?.author || "";
+
+  if (
+    user &&
+    props.isVisible &&
+    !props.seen &&
+    !(seenAction.isLoading || seenAction.isSuccess)
+  ) {
+    seenAction.mutateAsync();
+  }
 
   const [showReportPopUp, setShowReportPopUp] = useState(false)
   const [showDeletePopUp, setShowDeletePopUp] = useState(false)
@@ -88,7 +133,7 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
   return (
     <Box
       background={{ color: { light: "#FFFFFF", dark: "#333333" } }}
-      border={{ color: '#E6E6E6' }}
+      border={{ color: "#E6E6E6" }}
       width="800px"
       pad={{ vertical: "16px", horizontal: "24px" }}
       direction="column"
@@ -104,11 +149,26 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
             gap="16px"
             margin={{ bottom: "8px" }}
           >
-            <Box  fill='vertical' align='end' justify='end'>
-              <Box round='full' height='24px' overflow='hidden' width='24px' background={{color:colorHash.hex(userNameColor)}} align='center' justify='end'>
-                <User size='16px'/>
+            <Box fill="vertical" align="end" justify="end">
+              <Box
+                round="full"
+                height="24px"
+                overflow="hidden"
+                width="24px"
+                background={{ color: colorHash.hex(userNameColor) }}
+                align="center"
+                justify="end"
+              >
+                <User size="16px" />
               </Box>
             </Box>
+            {!user && (
+              <Box align="start">
+                <Text color={{ light: "#aaaaaa", dark: "#99999" }}>
+                  A Bubble User
+                </Text>
+              </Box>
+            )}
             {postStatus === "loading" ||
               (userStatus === "loading" && <Box align="start">Loading...</Box>)}
             {userStatus === "success" && (
@@ -121,46 +181,93 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
           <Box direction="row" gap="8px">
             <Box>
               <Text color={{ light: "#aaaaaa", dark: "#99999" }} size="xsmall">
-                {new Date(postData?.time_posted!).toLocaleString()}
+                <TimeAgo datetime={postData?.time_posted!} />
               </Text>
             </Box>
             <Box>
               <Text color={{ light: "#666666", dark: "#99999" }} size="xsmall">
-                From <b>{postData?.part_of}</b> (
-                {interestStatus === "success" && interestData?.name})
+                From{" "}
+                {postData ? (
+                  <Link to={"/i/" + postData.part_of}>
+                    <b>{postData.part_of}</b> (
+                    {interestStatus === "success" && interestData?.name})
+                  </Link>
+                ) : (
+                  "Loading..."
+                )}
               </Text>
             </Box>
+            {props.type === TimelineItemType.recommended && (
+              <Box>
+                <Text
+                  color={{ light: "#666666", dark: "#99999" }}
+                  size="xsmall"
+                >
+                  We think you might like this
+                </Text>
+              </Box>
+            )}
           </Box>
         </Box>
         <Box fill="vertical" align="start">
-          <Menu 
-            dropProps={{
-              align: { top: 'bottom', right: 'right' },
-              elevation: 'medium',
-            }}
-            icon={<More size='18px'/>} 
-            items={[
-            { 
-              label: (<Text margin={{right:'16px'}}>Report</Text>), 
-              onClick: () => { setShowReportPopUp(true)}, 
-              icon:(<Box fill='vertical' pad={{left:'8px', right:'16px', vertical:'8px'}}><Flag size='small'/></Box>)
-            },
-            { 
-              label: (<Text color='red' margin={{right:'16px'}}>Delete</Text>), 
-              onClick: ()=> { setShowDeletePopUp(true)}, 
-              icon:(<Box fill='vertical' pad={{left:'8px', right:'16px', vertical:'8px'}}><Trash size='small' color='red'/></Box>)
-            },
-          ]} />
 
-        {showReportPopUp && <ReportPopUp setterShowReportPopUp={setShowReportPopUp} currentState={showReportPopUp}/>}
-        {showDeletePopUp && <DeletePopUp setterShowDeletePopUp={setShowDeletePopUp} currentState={showDeletePopUp}/>}
+          {!!user && (
+            <Menu
+              dropProps={{
+                align: { top: "bottom", right: "right" },
+                elevation: "medium",
+              }}
+              icon={<More size="18px" />}
+              items={[
+                {
+                  disabled: !user || props.reported,
+                  label: <Text margin={{ right: "16px" }}>Report</Text>,
+                  onClick: onClick: () => { setShowReportPopUp(true)}, ,
+                  icon: (
+                    <Box
+                      fill="vertical"
+                      pad={{ left: "8px", right: "16px", vertical: "8px" }}
+                    >
+                      <Flag size="small" />
+                    </Box>
+                  ),
+                },
+                {
+                  disabled:
+                    !user ||
+                    !userAuthStatus ||
+                    !postData ||
+                    !(postData.author === user.uid || userAuthStatus.moderator),
+                  label: (
+                    <Text color="red" margin={{ right: "16px" }}>
+                      Delete
+                    </Text>
+                  ),
+                  onClick: ()=> { setShowDeletePopUp(true)},
+                  icon: (
+                    <Box
+                      fill="vertical"
+                      pad={{ left: "8px", right: "16px", vertical: "8px" }}
+                    >
+                      <Trash size="small" color="red" />
+                    </Box>
+                  ),
+                },
+              ]}
+            />
+          )}
+          {showReportPopUp && <ReportPopUp setterShowReportPopUp={setShowReportPopUp} currentState={showReportPopUp}/>}
+          {showDeletePopUp && <DeletePopUp setterShowDeletePopUp={setShowDeletePopUp} currentState={showDeletePopUp}/>}
+
         </Box>
       </Box>
       {/* The content */}
       <Box wrap={true}>
         {postStatus === "loading" && <Text>Loading...</Text>}
         {postStatus === "success" && <Text>{postData?.content}</Text>}
-        {postStatus === "error" && <Text>{postError?.message}</Text>}
+        {postStatus === "error" && (
+          <Text color="status-error">{postError?.message}</Text>
+        )}
       </Box>
       {/* Interact section */}
       <Box direction="row">
@@ -169,7 +276,7 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
           onClick={() =>
             props.liked ? unlikeAction.mutate() : likeAction.mutate()
           }
-          disabled={likeAction.isLoading || unlikeAction.isLoading}
+          disabled={!user || likeAction.isLoading || unlikeAction.isLoading}
         />
         <Box justify="center">
           <Text size="small">
@@ -179,6 +286,10 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
       </Box>
     </Box>
   );
+};
+
+TimelineItem.defaultProps = {
+  disableSeen: false,
 };
 
 export default TimelineItem;

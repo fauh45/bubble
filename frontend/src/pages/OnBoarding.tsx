@@ -8,7 +8,7 @@ import {
   Text,
   TextInput,
 } from "grommet";
-import { navigate, RouteComponentProps, Redirect } from "@reach/router";
+import { navigate, RouteComponentProps } from "@reach/router";
 import Page from "../components/Page";
 import InterestList from "../components/InterestList";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -33,7 +33,7 @@ const OnBoarding: React.FC<Props> = (props) => {
   );
 
   if (userAuthData?.exist || newUserMutation.isSuccess) {
-    return <Redirect to="/" />;
+    navigate("/");
   }
 
   let lastUsername = "";
@@ -83,12 +83,8 @@ const OnBoarding: React.FC<Props> = (props) => {
   };
 
   return (
- 
-    <Page  header={false}>
-      <Box
-        fill="horizontal"
-        overflow="auto"
-      >
+    <Page header={false}>
+      <Box fill="horizontal" overflow="auto">
         <Box margin={{ vertical: "24px", horizontal: "40px" }} gap="40px">
           <Formik
             initialValues={{ name: "", username: "", bio: "" }}
@@ -149,10 +145,7 @@ const OnBoarding: React.FC<Props> = (props) => {
                   />
                 </FormField>
 
-                <Box
-                  direction='column'
-                  gap='24px'
-                >
+                <Box direction="column" gap="24px">
                   <Heading margin="0" level="4">
                     Choose 3 to 5 interests.
                   </Heading>

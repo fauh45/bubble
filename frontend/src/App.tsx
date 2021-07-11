@@ -24,8 +24,8 @@ firebase.initializeApp(firebaseConfig);
 
 const Loading: React.FC = () => (
   <Layer full animate={false} animation={false}>
-    <Box align="center" justify='center' fill>
-      <Spinner size='medium'/>
+    <Box align="center" justify="center" fill>
+      <Spinner size="medium" />
     </Box>
   </Layer>
 );
@@ -41,6 +41,9 @@ const Authenticated: React.FC<RouteComponentProps> = (props) => {
 };
 
 const Timeline = loadable(() => import("./pages/Timeline"), {
+  fallback: <Loading />,
+});
+const InterestPage = loadable(() => import("./pages/InterestPage"), {
   fallback: <Loading />,
 });
 const Login = loadable(() => import("./pages/Login"), {
@@ -81,6 +84,7 @@ function App() {
           <Router>
             <NotFound default />
             <Login path="/login" />
+            <InterestPage path="/i/:interestId" />
 
             <Authenticated path="/">
               <Timeline path="/" />
