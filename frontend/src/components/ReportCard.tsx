@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Button, Heading, Layer, Text, TextArea } from 'grommet'
+import { Box, Button, Layer, Text, TextArea } from 'grommet'
 
 
 interface AdminReportProps {

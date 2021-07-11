@@ -222,7 +222,7 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
                 {
                   disabled: !user || props.reported,
                   label: <Text margin={{ right: "16px" }}>Report</Text>,
-                  onClick: onClick: () => { setShowReportPopUp(true)}, ,
+                  onClick: () => { setShowReportPopUp(true)},
                   icon: (
                     <Box
                       fill="vertical"
