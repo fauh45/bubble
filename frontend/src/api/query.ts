@@ -1,4 +1,5 @@
 import {
+  AbuseV1GetResponse,
   InterestRandomV1GetResponse,
   InterestSearchV1PostBody,
   InterestSearchV1PostResponse,
@@ -62,4 +63,8 @@ export const searchInterest = (query: string) => {
     "/interest/v1/search",
     { query: query }
   );
+};
+
+export const getReports = (post_id: string) => {
+  return commonGet<AbuseV1GetResponse>(`/abuse/v1/${post_id}`);
 };

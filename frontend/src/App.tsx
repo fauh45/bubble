@@ -92,6 +92,7 @@ function App() {
             </Authenticated>
           </Router>
         </Grommet>
+
         <ReactQueryDevtools initialIsOpen />
       </QueryClientProvider>
     </UserContext.Provider>

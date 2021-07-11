@@ -1,12 +1,21 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { TextInput, ThemeContext } from "grommet";
 import { Search } from "grommet-icons";
+import { useQuery } from "react-query";
+import { searchInterest } from "../api/query";
+import { navigate } from "@reach/router";
 
 const SearchBar: React.FC = (props) => {
+  const [query, setQuery] = useState("");
 
-  const suggestions =  Array(10).fill(1).map((_, i) => `suggestion ${i + 1}`);
-
-  const [value, setValue] = useState("");
+  const searchQuery = useQuery(
+    ["interestQuery", query],
+    () => searchInterest(query),
+    {
+      enabled: Boolean(query),
+      staleTime: 1000 * 60,
+    }
+  );
 
   return (
     <ThemeContext.Extend
@@ -29,11 +38,16 @@ const SearchBar: React.FC = (props) => {
         icon={<Search color="#C9C9C9" />}
         size="small"
         placeholder="Search interest"
-        value={value}
-        suggestions={suggestions}
-        onChange={event=> setValue(event.target.value)}
-        onSuggestionSelect={event=> setValue(event.suggestion)}
-
+        value={query}
+        suggestions={
+          searchQuery.isLoading || searchQuery.isIdle
+            ? []
+            : searchQuery.data?.slice(0, 5).map((item) => {
+                return { label: item.name, value: item._id };
+              })
+        }
+        onChange={(event) => setQuery(event.target.value)}
+        onSuggestionSelect={(event) => navigate("/i/" + event.suggestion.value)}
       />
     </ThemeContext.Extend>
   );
