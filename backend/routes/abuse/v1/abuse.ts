@@ -47,7 +47,15 @@ const AbuseV1Route: FastifyPluginAsync = async (app, opts) => {
       }
 
       const db = app.mongo.client.db();
-      return await getAbuseById(db, req.params.post_id);
+      const result = await getAbuseById(db, req.params.post_id);
+
+      return res
+        .code(200)
+        .send({
+          ...result,
+          _id: result._id.toHexString(),
+          last_updated: result.last_updated.toISOString(),
+        });
     }
   );
 
