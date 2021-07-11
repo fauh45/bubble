@@ -205,7 +205,7 @@ app.ready((err) => {
           const db = app.mongo.client.db();
 
           app.log.info("Putting " + recommendPostId);
-          addTimelineItem(
+          await addTimelineItem(
             db,
             user,
             recommendPostId,
