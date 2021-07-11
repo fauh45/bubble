@@ -168,9 +168,8 @@ app.ready((err) => {
     const activeUser = await redis.smembers(activeUserKey);
     app.log.info(activeUser, "Active user are");
 
-    let i = 0;
     for (const user in activeUser) {
-      app.log.info("Getting Recommendation for " + user);
+      app.log.info("Getting Recommendation for " + activeUser[user]);
 
       const isMember = await redis.sismember(
         activeUserRecommendedKey,
@@ -207,7 +206,7 @@ app.ready((err) => {
           app.log.info("Putting " + recommendPostId);
           await addTimelineItem(
             db,
-            user,
+            activeUser[user],
             recommendPostId,
             TimelineItemType.recommended
           );

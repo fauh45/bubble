@@ -1,4 +1,6 @@
 import {
+  InterestActionV1Actions,
+  InterestActionV1PostResponse,
   PostActionV1Actions,
   PostActionV1PostResponse,
   PostV1PostBody,
@@ -37,6 +39,16 @@ export const createNewPost = (body: PostV1PostBody) => {
 export const postAction = (action: PostActionV1Actions, post_id: string) => {
   return commonPost<{}, PostActionV1PostResponse>(
     `/post/v1/${action}/${post_id}`,
+    {}
+  );
+};
+
+export const interestAction = (
+  action: InterestActionV1Actions,
+  interest_id: string
+) => {
+  return commonPost<{}, InterestActionV1PostResponse>(
+    `/interest/v1/${action}/${interest_id}`,
     {}
   );
 };
