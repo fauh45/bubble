@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useState} from "react";
 import { Box, Button, Menu, Text } from "grommet";
 import { More, Flag, Trash, User, Like } from "grommet-icons";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -14,6 +14,8 @@ import {
 } from "@bubble/common";
 import { postAction } from "../api/mutation";
 import ColorHash from 'color-hash'
+import ReportPopUp from '../components/ReportCard';
+import DeletePopUp from '../components/DeleteCard';
 
 interface TimelineItemProps extends TimelineItemSerialized {
   handleAction(post_id: string, new_data: PostActionV1PostResponse): void;
@@ -77,9 +79,11 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     }
   );
 
-
   var colorHash = new ColorHash({hue: [ {min: 30, max: 90}, {min: 180, max: 210}, {min: 270, max: 285} ], lightness:0.5});
   let userNameColor:string = userData?.username || '';
+
+  const [showReportPopUp, setShowReportPopUp] = useState(false)
+  const [showDeletePopUp, setShowDeletePopUp] = useState(false)
 
   return (
     <Box
@@ -138,15 +142,18 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
             items={[
             { 
               label: (<Text margin={{right:'16px'}}>Report</Text>), 
-              onClick: () => { }, 
+              onClick: () => { setShowReportPopUp(true)}, 
               icon:(<Box fill='vertical' pad={{left:'8px', right:'16px', vertical:'8px'}}><Flag size='small'/></Box>)
             },
             { 
               label: (<Text color='red' margin={{right:'16px'}}>Delete</Text>), 
-              onClick: () => { }, 
+              onClick: ()=> { setShowDeletePopUp(true)}, 
               icon:(<Box fill='vertical' pad={{left:'8px', right:'16px', vertical:'8px'}}><Trash size='small' color='red'/></Box>)
             },
           ]} />
+
+        {showReportPopUp && <ReportPopUp setterShowReportPopUp={setShowReportPopUp} currentState={showReportPopUp}/>}
+        {showDeletePopUp && <DeletePopUp setterShowDeletePopUp={setShowDeletePopUp} currentState={showDeletePopUp}/>}
         </Box>
       </Box>
       {/* The content */}
