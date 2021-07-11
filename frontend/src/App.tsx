@@ -7,6 +7,7 @@ import { ReactQueryDevtools } from "react-query/devtools";
 
 import firebase from "firebase/app";
 import "firebase/auth";
+import "firebase/analytics";
 
 import { UserContext } from "./context/user";
 
@@ -21,6 +22,7 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+firebase.analytics();
 
 const Loading: React.FC = () => (
   <Layer full animate={false} animation={false}>
@@ -34,6 +36,7 @@ const Authenticated: React.FC<RouteComponentProps> = (props) => {
   const user = useContext(UserContext);
 
   if (user) {
+    firebase.analytics().setUserId(user.uid)
     return <>{props.children}</>;
   } else {
     return <Redirect to="/login" noThrow />;
