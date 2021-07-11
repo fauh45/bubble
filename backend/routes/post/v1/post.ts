@@ -216,7 +216,7 @@ const PostV1Route: FastifyPluginAsync = async (app, opts) => {
             .collection<PostModel>(PostCollection)
             .updateOne(
               { _id: new ObjectId(req.params.post_id) },
-              { deleted: req.body.deleted }
+              { $set: { deleted: req.body.deleted } }
             ),
           Post.update(
             { deleted: req.body.deleted },
