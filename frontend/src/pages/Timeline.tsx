@@ -30,7 +30,7 @@ const Timeline: React.FC<Props> = (props) => {
 
   useEffect(() => {
     refetch();
-  }, []);
+  }, [refetch]);
 
   const queryClient = useQueryClient();
 

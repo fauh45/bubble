@@ -64,6 +64,7 @@ const TimelineCreatePost: React.FC<Props> = (props) => {
     () => searchInterest(query),
     {
       enabled: Boolean(query),
+      staleTime: 1000 * 60
     }
   );
 

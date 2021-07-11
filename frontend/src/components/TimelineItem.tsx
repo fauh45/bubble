@@ -24,8 +24,9 @@ import { postAction } from "../api/mutation";
 import ColorHash from "color-hash";
 import { UserContext } from "../context/user";
 import { Link } from "@reach/router";
-import ReportPopUp from '../components/ReportCard';
-import DeletePopUp from '../components/DeleteCard';
+import ReportPopUp from "../components/ReportCard";
+import DeletePopUp from "../components/DeleteCard";
+import { AxiosError } from "axios";
 
 interface TimelineItemProps extends TimelineItemSerialized {
   disableSeen?: boolean;
@@ -40,11 +41,16 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     status: postStatus,
     data: postData,
     error: postError,
-  } = useQuery<PostV1GetResponse, PostV1GetError>(
+  } = useQuery<PostV1GetResponse, AxiosError<PostV1GetError>>(
     ["post", props.post_id],
     () => getPost(props.post_id),
     {
       staleTime: 1000 * 60 * 5,
+      retry: (count, error) => {
+        if (error.response?.data.error === "Post is deleted") return false;
+
+        return true;
+      },
     }
   );
 
@@ -52,7 +58,7 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     status: userStatus,
     data: userData,
     error: userError,
-  } = useQuery<UserV1GetResponse, UserV1GetError>(
+  } = useQuery<UserV1GetResponse, AxiosError<UserV1GetError>>(
     ["user", postData?.author!],
     () => getUser(postData?.author!),
     {
@@ -107,7 +113,6 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     }
   );
 
-
   const colorHash = new ColorHash({
     hue: [
       { min: 30, max: 90 },
@@ -127,8 +132,12 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
     seenAction.mutateAsync();
   }
 
-  const [showReportPopUp, setShowReportPopUp] = useState(false)
-  const [showDeletePopUp, setShowDeletePopUp] = useState(false)
+  const [showReportPopUp, setShowReportPopUp] = useState(false);
+  const [showDeletePopUp, setShowDeletePopUp] = useState(false);
+
+  if (postError?.response?.data.error === "Post is deleted") {
+    return <></>;
+  }
 
   return (
     <Box
@@ -175,7 +184,9 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
               <Box align="start">{userData?.username}</Box>
             )}
             {userStatus === "error" && (
-              <Box align="start">Error: {userError?.message}</Box>
+              <Box align="start">
+                Error: {userError?.response?.data.message}
+              </Box>
             )}
           </Box>
           <Box direction="row" gap="8px">
@@ -210,7 +221,6 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
           </Box>
         </Box>
         <Box fill="vertical" align="start">
-
           {!!user && (
             <Menu
               dropProps={{
@@ -220,9 +230,12 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
               icon={<More size="18px" />}
               items={[
                 {
-                  disabled: !user || props.reported,
+                  disabled:
+                    !user || !userData?.is_moderator ? false : props.reported,
                   label: <Text margin={{ right: "16px" }}>Report</Text>,
-                  onClick: () => { setShowReportPopUp(true)},
+                  onClick: () => {
+                    setShowReportPopUp(true);
+                  },
                   icon: (
                     <Box
                       fill="vertical"
@@ -243,7 +256,9 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
                       Delete
                     </Text>
                   ),
-                  onClick: ()=> { setShowDeletePopUp(true)},
+                  onClick: () => {
+                    setShowDeletePopUp(true);
+                  },
                   icon: (
                     <Box
                       fill="vertical"
@@ -256,9 +271,20 @@ const TimelineItem: React.FC<TimelineItemProps> = (props) => {
               ]}
             />
           )}
-          {showReportPopUp && <ReportPopUp setterShowReportPopUp={setShowReportPopUp} currentState={showReportPopUp}/>}
-          {showDeletePopUp && <DeletePopUp setterShowDeletePopUp={setShowDeletePopUp} currentState={showDeletePopUp}/>}
-
+          {showReportPopUp && (
+            <ReportPopUp
+              post_id={props.post_id}
+              setterShowReportPopUp={setShowReportPopUp}
+              currentState={showReportPopUp}
+            />
+          )}
+          {showDeletePopUp && (
+            <DeletePopUp
+              post_id={props.post_id}
+              setterShowDeletePopUp={setShowDeletePopUp}
+              currentState={showDeletePopUp}
+            />
+          )}
         </Box>
       </Box>
       {/* The content */}
