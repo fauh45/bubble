@@ -380,7 +380,7 @@ export const updateSeen = async (db: Db, user_id: string, post_id: string) => {
   const postObjectId = new ObjectId(post_id);
 
   const timelineUpdate = db
-    .collection<UserTimelineModel>(UserAccountCollection)
+    .collection<UserTimelineModel>(UserTimelineCollection)
     .updateOne(
       { _id: user_id, "timeline.post_id": postObjectId },
       { $set: { "timeline.$.seen": true } }
