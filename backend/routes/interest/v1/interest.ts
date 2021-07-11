@@ -199,9 +199,9 @@ const InterestV1Route: FastifyPluginAsync = async (app, opts) => {
             addUserInterest(db, req.user_account?._id!, req.params.interest_id),
           ]);
 
-          return res
-            .code(200)
-            .send({ ...user, likes: user.likes.push(req.params.interest_id) });
+          user.likes.push(req.params.interest_id);
+
+          return res.code(200).send({ ...user, likes: user.likes });
 
         case InterestActionV1Actions.unfollow:
           if (!user.likes.includes(req.params.interest_id)) {
