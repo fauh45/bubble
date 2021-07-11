@@ -72,6 +72,8 @@ class LoginForm extends React.Component<LoginFormProps, LoginFormState> {
             this.setState({
               auth_status: { status: "error", message: error.message },
             });
+
+            console.error(error);
           });
       })
       .catch((err) => console.error(err));
