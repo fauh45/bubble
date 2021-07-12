@@ -14,27 +14,35 @@ import InterestList from "../components/InterestList";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { checkUserAuthStatus, checkUsername } from "../api/query";
 import { createNewUser } from "../api/mutation";
-import { UserV1PostBody } from "@bubble/common";
+import {
+  UserV1PostBody,
+  UserV1PostError,
+  UserV1PostResponse,
+} from "@bubble/common";
 import { Formik } from "formik";
+import { AxiosError } from "axios";
 
 interface Props extends RouteComponentProps {}
 
 const OnBoarding: React.FC<Props> = (props) => {
   const [interestError, setInterestError] = useState("");
+  const [mutationError, setMutationError] = useState("");
 
   const queryClient = useQueryClient();
 
-  const { status: userAuthStatus, data: userAuthData } = useQuery(
-    "userStatus",
-    checkUserAuthStatus,
-    {
-      staleTime: 1000 * 60 * 60,
-    }
-  );
+  const {
+    status: userAuthStatus,
+    data: userAuthData,
+    refetch,
+  } = useQuery("userStatus", checkUserAuthStatus, {
+    staleTime: 1000 * 60 * 60,
+  });
 
-  const newUserMutation = useMutation((data: UserV1PostBody) =>
-    createNewUser(data)
-  );
+  const newUserMutation = useMutation<
+    UserV1PostResponse,
+    AxiosError<UserV1PostError>,
+    UserV1PostBody
+  >((data) => createNewUser(data));
 
   if (userAuthStatus === "success" && userAuthData?.exist) {
     navigate("/");
@@ -55,14 +63,28 @@ const OnBoarding: React.FC<Props> = (props) => {
   }
 
   const handleSubmit = (data: formData) => {
-    newUserMutation.mutate({
-      bio: data.bio,
-      likes: Array.from(selectedInterestId),
-      username: data.username,
-      name: data.name,
-    });
+    newUserMutation.mutate(
+      {
+        bio: data.bio,
+        likes: Array.from(selectedInterestId),
+        username: data.username,
+        name: data.name,
+      },
+      {
+        onError: (err) => {
+          setMutationError(err.response?.data.message || err.message);
+        },
+        onSuccess: async (data) => {
+          setMutationError("");
+          queryClient.setQueryData(["user", data._id], data);
 
-    queryClient.invalidateQueries("userStatus");
+          await refetch();
+          queryClient.invalidateQueries("userStatus");
+
+          navigate("/");
+        },
+      }
+    );
   };
 
   const handleValidation = async (
@@ -92,6 +114,9 @@ const OnBoarding: React.FC<Props> = (props) => {
     <Page header={false}>
       <Box fill="horizontal" overflow="auto">
         <Box margin={{ vertical: "24px", horizontal: "40px" }} gap="40px">
+          {mutationError !== "" && (
+            <Text color="status-error">{mutationError}</Text>
+          )}
           <Formik
             initialValues={{ name: "", username: "", bio: "" }}
             onSubmit={(values) => handleSubmit(values)}
@@ -181,7 +206,9 @@ const OnBoarding: React.FC<Props> = (props) => {
                       <Button
                         label="Ok"
                         primary
-                        disabled={newUserMutation.isLoading}
+                        disabled={
+                          newUserMutation.isLoading || newUserMutation.isSuccess
+                        }
                         type="submit"
                       />
                     </Box>
