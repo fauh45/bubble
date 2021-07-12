@@ -36,7 +36,7 @@ const OnBoarding: React.FC<Props> = (props) => {
     createNewUser(data)
   );
 
-  if (userAuthData?.exist || newUserMutation.isSuccess) {
+  if (userAuthStatus === "success" && userAuthData?.exist) {
     navigate("/");
   }
 
