@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Button,
@@ -20,7 +20,10 @@ import { Formik } from "formik";
 interface Props extends RouteComponentProps {}
 
 const OnBoarding: React.FC<Props> = (props) => {
+  const [interestError, setInterestError] = useState("");
+
   const queryClient = useQueryClient();
+
   const { status: userAuthStatus, data: userAuthData } = useQuery(
     "userStatus",
     checkUserAuthStatus,
@@ -28,6 +31,7 @@ const OnBoarding: React.FC<Props> = (props) => {
       staleTime: 1000 * 60 * 60,
     }
   );
+
   const newUserMutation = useMutation((data: UserV1PostBody) =>
     createNewUser(data)
   );
@@ -74,9 +78,11 @@ const OnBoarding: React.FC<Props> = (props) => {
       errors.username = "Username has been taken";
 
     if (selectedInterestId.size < 3) {
-      errors.name = "Interest choice are too small, minimal 3";
+      setInterestError("Interest choice are too small, minimal 3");
     } else if (selectedInterestId.size > 5) {
-      errors.name = "Interest choice are too small, maximal 5";
+      setInterestError("Interest choice are too small, maximal 5");
+    } else {
+      setInterestError("");
     }
 
     return errors;
@@ -149,6 +155,10 @@ const OnBoarding: React.FC<Props> = (props) => {
                   <Heading margin="0" level="4">
                     Choose 3 to 5 interests.
                   </Heading>
+
+                  {interestError !== "" && (
+                    <Text color="status-error">{interestError}</Text>
+                  )}
 
                   <Box overflow="auto" flex="shrink" responsive>
                     {userAuthStatus === "loading" && <Text>Loading...</Text>}
