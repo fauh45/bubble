@@ -9,7 +9,6 @@ interface Props extends RouteComponentProps { }
 class Login extends React.Component<Props>{
     render() {
         return (
-            // <Page  header={false}>
             <Layer full position='center' animate={false} animation={false}>
                 <Box fill align='center' justify='center'>
                     <Box

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { TextInput, ThemeContext } from "grommet";
+import { Box, TextInput, ThemeContext } from "grommet";
 import { Search } from "grommet-icons";
 import { useQuery } from "react-query";
 import { searchInterest } from "../api/query";
@@ -34,21 +34,23 @@ const SearchBar: React.FC = (props) => {
         },
       }}
     >
-      <TextInput
-        icon={<Search color="#C9C9C9" />}
-        size="small"
-        placeholder="Search interest"
-        value={query}
-        suggestions={
-          searchQuery.isLoading || searchQuery.isIdle
-            ? []
-            : searchQuery.data?.slice(0, 5).map((item) => {
-                return { label: item.name, value: item._id };
-              })
-        }
-        onChange={(event) => setQuery(event.target.value)}
-        onSuggestionSelect={(event) => navigate("/i/" + event.suggestion.value)}
-      />
+      <Box background={{color:'white'}} round>
+        <TextInput
+          icon={<Search color="#C9C9C9" />}
+          size="small"
+          placeholder="Search interest"
+          value={query}
+          suggestions={
+            searchQuery.isLoading || searchQuery.isIdle
+              ? []
+              : searchQuery.data?.slice(0, 5).map((item) => {
+                  return { label: item.name, value: item._id };
+                })
+          }
+          onChange={(event) => setQuery(event.target.value)}
+          onSuggestionSelect={(event) => navigate("/i/" + event.suggestion.value)}
+        />
+      </Box>
     </ThemeContext.Extend>
   );
 };

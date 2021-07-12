@@ -10,9 +10,9 @@ import {
 } from "grommet";
 import { navigate, RouteComponentProps } from "@reach/router";
 import Page from "../components/Page";
-import InterestList from "../components/InterestList";
-import { useMutation, useQuery, useQueryClient } from "react-query";
-import { checkUserAuthStatus, checkUsername } from "../api/query";
+import InterestItem from "../components/InterestItem";
+import { useMutation, useQuery, useQueryClient} from "react-query";
+import { checkUserAuthStatus, checkUsername,getRandomInterest } from "../api/query";
 import { createNewUser } from "../api/mutation";
 import {
   UserV1PostBody,
@@ -22,7 +22,7 @@ import {
 import { Formik } from "formik";
 import { AxiosError } from "axios";
 
-interface Props extends RouteComponentProps {}
+interface Props extends RouteComponentProps { }
 
 const OnBoarding: React.FC<Props> = (props) => {
   const [interestError, setInterestError] = useState("");
@@ -110,6 +110,16 @@ const OnBoarding: React.FC<Props> = (props) => {
     return errors;
   };
 
+  const { status, data } = useQuery(
+    "randomInterest",
+    () => getRandomInterest(5),
+    {
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    }
+  );
+
+
   return (
     <Page header={false}>
       <Box fill="horizontal" overflow="auto">
@@ -188,7 +198,20 @@ const OnBoarding: React.FC<Props> = (props) => {
                   <Box overflow="auto" flex="shrink" responsive>
                     {userAuthStatus === "loading" && <Text>Loading...</Text>}
                     {userAuthStatus === "success" && (
-                      <InterestList handleChoice={handleChoice} />
+                      <Box align="start" fill="horizontal" gap="48px" direction="row-responsive">
+                        {status === "loading" && <Text>Loading...</Text>}
+                        {status === "error" && <Text>Got an error...</Text>}
+                        {status === "success" &&
+                          data?.map((item) => {
+                            return (
+                              <InterestItem
+                                name={item.name}
+                                id={item._id}
+                                handleChoice={handleChoice}
+                              />
+                            );
+                          })}
+                      </Box>
                     )}
                   </Box>
 
