@@ -30,6 +30,7 @@ const InterestList: React.FC<Props> = (props) => {
         data?.map((item) => {
           return (
             <InterestItem
+              checked={false} // WARNING : Should be handled differently if used
               name={item.name}
               id={item._id}
               handleChoice={handleChoice}
