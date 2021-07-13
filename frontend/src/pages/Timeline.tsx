@@ -51,7 +51,7 @@ const Timeline: React.FC<Props> = (props) => {
     <Page header={true}>
       <Box
         fill="horizontal"
-        background={{ color: { light: "#FFFFFF", dark: "#333333" } }}
+        background={{ color: { light: "#FBFBFB", dark: "#333333" } }}
         direction="column"
         align="center"
       >

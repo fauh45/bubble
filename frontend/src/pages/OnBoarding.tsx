@@ -10,9 +10,13 @@ import {
 } from "grommet";
 import { navigate, RouteComponentProps } from "@reach/router";
 import Page from "../components/Page";
-import InterestList from "../components/InterestList";
+import InterestItem from "../components/InterestItem";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { checkUserAuthStatus, checkUsername } from "../api/query";
+import {
+  checkUserAuthStatus,
+  checkUsername,
+  getRandomInterest,
+} from "../api/query";
 import { createNewUser } from "../api/mutation";
 import {
   UserV1PostBody,
@@ -22,7 +26,7 @@ import {
 import { Formik } from "formik";
 import { AxiosError } from "axios";
 
-interface Props extends RouteComponentProps {}
+interface Props extends RouteComponentProps { }
 
 const OnBoarding: React.FC<Props> = (props) => {
   const [interestError, setInterestError] = useState("");
@@ -48,25 +52,18 @@ const OnBoarding: React.FC<Props> = (props) => {
     navigate("/");
   }
 
-  let lastUsername = "";
-  const selectedInterestId = new Set<string>();
-
-  const handleChoice = (interest_id: string, checked: boolean) => {
-    if (checked) selectedInterestId.add(interest_id);
-    else selectedInterestId.delete(interest_id);
-  };
-
   interface formData {
     bio: string;
     username: string;
     name: string;
+    likes: string[];
   }
 
   const handleSubmit = (data: formData) => {
     newUserMutation.mutate(
       {
         bio: data.bio,
-        likes: Array.from(selectedInterestId),
+        likes: data.likes,
         username: data.username,
         name: data.name,
       },
@@ -92,16 +89,14 @@ const OnBoarding: React.FC<Props> = (props) => {
   ): Promise<Partial<formData>> => {
     const errors: Partial<formData> = {};
 
-    console.log(lastUsername);
-
     const usernameAvailable = await checkUsername(data.username);
 
     if (!usernameAvailable.available)
       errors.username = "Username has been taken";
 
-    if (selectedInterestId.size < 3) {
+    if (data.likes.length < 3) {
       setInterestError("Interest choice are too small, minimal 3");
-    } else if (selectedInterestId.size > 5) {
+    } else if (data.likes.length > 5) {
       setInterestError("Interest choice are too small, maximal 5");
     } else {
       setInterestError("");
@@ -109,6 +104,15 @@ const OnBoarding: React.FC<Props> = (props) => {
 
     return errors;
   };
+
+  const { status, data } = useQuery(
+    "randomInterest",
+    () => getRandomInterest(5),
+    {
+      refetchOnMount: false,
+      refetchOnWindowFocus: false,
+    }
+  );
 
   return (
     <Page header={false}>
@@ -118,7 +122,12 @@ const OnBoarding: React.FC<Props> = (props) => {
             <Text color="status-error">{mutationError}</Text>
           )}
           <Formik
-            initialValues={{ name: "", username: "", bio: "" }}
+            initialValues={{
+              name: "",
+              username: "",
+              bio: "",
+              likes: [] as string[],
+            }}
             onSubmit={(values) => handleSubmit(values)}
             validate={(values) => handleValidation(values)}
           >
@@ -188,7 +197,40 @@ const OnBoarding: React.FC<Props> = (props) => {
                   <Box overflow="auto" flex="shrink" responsive>
                     {userAuthStatus === "loading" && <Text>Loading...</Text>}
                     {userAuthStatus === "success" && (
-                      <InterestList handleChoice={handleChoice} />
+                      <Box
+                        align="start"
+                        fill="horizontal"
+                        gap="48px"
+                        direction="row-responsive"
+                      >
+                        {status === "loading" && <Text>Loading...</Text>}
+                        {status === "error" && <Text>Got an error...</Text>}
+                        {status === "success" &&
+                          data?.map((item) => {
+                            return (
+                              <InterestItem
+                                name={item.name}
+                                id={item._id}
+                                checked={values.likes.includes(item._id)}
+                                handleChoice={(interest_id, checked) => {
+                                  if (checked) {
+                                    setFieldValue("likes", [
+                                      ...values.likes,
+                                      interest_id,
+                                    ]);
+                                  } else {
+                                    setFieldValue(
+                                      "likes",
+                                      values.likes.filter(
+                                        (v) => v !== interest_id
+                                      )
+                                    );
+                                  }
+                                }}
+                              />
+                            );
+                          })}
+                      </Box>
                     )}
                   </Box>
 

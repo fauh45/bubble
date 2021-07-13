@@ -12,7 +12,7 @@ import { UserV1GetError, UserV1GetResponse } from "@bubble/common";
 import { getUser } from "../api/query";
 import { navigate } from "@reach/router";
 
-interface Props {}
+interface Props { }
 
 const PageHeader: React.FC<Props> = (props) => {
   const user = useContext(UserContext);
@@ -33,12 +33,14 @@ const PageHeader: React.FC<Props> = (props) => {
   return (
     <Box height="70px" fill="horizontal">
       <Box
+        focusIndicator={false}
         pad={{ horizontal: "40px" }}
         direction="row"
         elevation="small"
         justify="between"
+        background={{ color: '#F95700' }}
       >
-        <Box fill="vertical" justify="center" onClick={() => navigate("/")}>
+        <Box fill="vertical" justify="center" onClick={() => navigate("/")} hoverIndicator={false}>
           <img
             height="30px"
             width="30px"
@@ -52,9 +54,9 @@ const PageHeader: React.FC<Props> = (props) => {
         <Box fill="vertical" align="center" direction="row">
           <Menu
             label={
-              <Text weight="bold">
+              <Text weight="bold" color="white">
                 {userData?.name}{" "}
-                {userData?.is_moderator && <Tools size="small" color="brand" />}
+                {userData?.is_moderator && <Tools size="small" color="white" />}
               </Text>
             }
             icon={false}

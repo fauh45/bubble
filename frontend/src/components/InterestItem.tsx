@@ -6,6 +6,7 @@ interface InterestItemProps {
   id: string;
   handleChoice(interest_id: string, checked: boolean): void;
   status?: boolean;
+  checked: boolean;
 }
 
 const InterestItem: React.FC<InterestItemProps> = (props) => {
@@ -35,6 +36,7 @@ const InterestItem: React.FC<InterestItemProps> = (props) => {
     >
       <CheckBox
         onChange={(event) => handleChoice(id, event.target.checked)}
+        checked={props.checked}
         label={name}
       />
     </ThemeContext.Extend>
