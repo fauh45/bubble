@@ -43,6 +43,7 @@ const InterestPage = (props: Props): JSX.Element => {
             interest_id={props.interestId!}
             name={data?.name!}
             description={data?.description!}
+            followers_count={data?.followers_aggregate!}
           />
         ) : (
           <Spinner size="medium" />
@@ -64,7 +65,7 @@ const InterestPage = (props: Props): JSX.Element => {
                   reported={false}
                   seen={false}
                   type={TimelineItemType.followed}
-                  handleAction={(_p, _d) => {}}
+                  handleAction={(_p, _d) => { }}
                 />
               )}
             </InfiniteScroll>

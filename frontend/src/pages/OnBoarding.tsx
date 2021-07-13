@@ -26,7 +26,7 @@ import {
 import { Formik } from "formik";
 import { AxiosError } from "axios";
 
-interface Props extends RouteComponentProps {}
+interface Props extends RouteComponentProps { }
 
 const OnBoarding: React.FC<Props> = (props) => {
   const [interestError, setInterestError] = useState("");

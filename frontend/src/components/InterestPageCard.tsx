@@ -15,6 +15,7 @@ interface InterestPageCardProps {
   interest_id: string;
   name: string;
   description: string;
+  followers_count:number;
 }
 
 const InterestPageCard: React.FC<InterestPageCardProps> = (props) => {
@@ -63,22 +64,27 @@ const InterestPageCard: React.FC<InterestPageCardProps> = (props) => {
     >
       <Box direction="column" pad="24px" gap="24px">
         <Heading margin="0">{props.name}</Heading>
-        <Text>{props.description}</Text>
+        <Box gap='8px'>
+          <Text>{props.description}</Text>
+          <Text size='small' color='#AAAAAA'>{props.followers_count} followers</Text>
+        </Box>
         {!!user && (
-          <Box width="120px" round>
-            <Button
-              icon={
-                isFollowed() ? <Checkmark size="16px" /> : <Add size="16px" />
-              }
-              label={isFollowed() ? "Followed" : "Follow"}
-              secondary={!isFollowed()}
-              primary={isFollowed()}
-              onClick={() => {
-                interestActionMutation.mutate();
-              }}
-              disabled={interestActionMutation.isLoading}
-              color="brand"
-            />
+          <Box direction ='row' gap='24px'>
+            <Box width="120px" round>
+              <Button
+                icon={
+                  isFollowed() ? <Checkmark size="16px" /> : <Add size="16px" />
+                }
+                label={isFollowed() ? "Followed" : "Follow"}
+                secondary={!isFollowed()}
+                primary={isFollowed()}
+                onClick={() => {
+                  interestActionMutation.mutate();
+                }}
+                disabled={interestActionMutation.isLoading}
+                color="brand"
+              />
+            </Box>
           </Box>
         )}
       </Box>
