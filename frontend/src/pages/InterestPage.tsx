@@ -51,25 +51,36 @@ const InterestPage = (props: Props): JSX.Element => {
 
         {user && status === "success" && <TimelineCreatePost interest={data} />}
 
-        {status === "success" &&
-          !!data?.posts.length &&
-          data?.posts.length > 0 && (
-            <InfiniteScroll items={data.posts} step={10}>
-              {(item: string) => (
-                <TimelineItem
-                  key={item}
-                  disableSeen={true}
-                  isVisible={false}
-                  liked={false}
-                  post_id={item}
-                  reported={false}
-                  seen={false}
-                  type={TimelineItemType.followed}
-                  handleAction={(_p, _d) => { }}
-                />
-              )}
-            </InfiniteScroll>
-          )}
+        {!!data && (
+          <InfiniteScroll
+            items={data.posts}
+            step={15}
+            renderMarker={(marker) => (
+              <Box
+                align="center"
+                background="#F95700"
+                width="800px"
+                height="25px"
+              >
+                {marker}
+              </Box>
+            )}
+          >
+            {(item: string) => (
+              <TimelineItem
+                key={item}
+                disableSeen={true}
+                isVisible={false}
+                liked={false}
+                post_id={item}
+                reported={false}
+                seen={false}
+                type={TimelineItemType.followed}
+                handleAction={(_p, _d) => {}}
+              />
+            )}
+          </InfiniteScroll>
+        )}
 
         <Box align="center" background="white" width="800px">
           .

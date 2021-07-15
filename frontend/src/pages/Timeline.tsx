@@ -60,29 +60,37 @@ const Timeline: React.FC<Props> = (props) => {
         {status === "loading" ||
           (status === "idle" && <Spinner size="medium" />)}
 
-        {status === "success" &&
-          !!data?.timeline.length &&
-          data?.timeline.length > 0 && (
-            <InfiniteScroll items={data.timeline} step={10}>
-              {(item: TimelineItemSerialized) => (
-                <TrackVisibility
-                  key={item.post_id + "_visibilityObserver"}
-                  once
-                >
-                  {({ isVisible }) => (
-                    <TimelineItem
-                      isVisible={isVisible}
-                      key={item.post_id}
-                      handleAction={handlePostAction}
-                      {...item}
-                    />
-                  )}
-                </TrackVisibility>
-              )}
-            </InfiniteScroll>
-          )}
+        {!!data && (
+          <InfiniteScroll
+            items={data.timeline}
+            step={15}
+            renderMarker={(marker) => (
+              <Box
+                align="center"
+                background="#F95700"
+                width="800px"
+                height="25px"
+              >
+                {marker}
+              </Box>
+            )}
+          >
+            {(item: TimelineItemSerialized) => (
+              <TrackVisibility key={item.post_id + "_visibilityObserver"} once>
+                {({ isVisible }) => (
+                  <TimelineItem
+                    isVisible={isVisible}
+                    key={item.post_id}
+                    handleAction={handlePostAction}
+                    {...item}
+                  />
+                )}
+              </TrackVisibility>
+            )}
+          </InfiniteScroll>
+        )}
 
-        <Box align="center" background="white" width="800px">
+        <Box align="center" width="800px" height="25px">
           .
         </Box>
       </Box>
